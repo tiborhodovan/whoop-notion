@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WHOOP Dashboard</title>
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/recharts@2.10.3/umd/Recharts.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #07090f; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+  ::-webkit-scrollbar { width: 4px; height: 4px; }
+  ::-webkit-scrollbar-thumb { background: #1a2747; border-radius: 4px; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel" data-presets="react">
+
+const { useState, useEffect, useMemo } = React;
+const { AreaChart, Area, LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ComposedChart, Cell } = Recharts;
+
+const C = {
+  bg: "#07090f", card: "#0d1120", cardBorder: "#161f36",
+  recovery: "#00ffc8", hrv: "#4d9fff", sleep: "#b56cff", strain: "#ff6b35",
+  hr: "#ff3d5a", spo2: "#00d4f5", temp: "#ffc83d", cal: "#f72c0",
+  text: "#e8eef8", muted: "#4a5568", mutedLight: "#718096",
+  green: "#00e87a", yellow: "#ffd93d", red: "#ff3d5a",
+};
+
+const PALETTE = ["#00ffc8","#4d9fff","#b56cff","#ff6b35","#ff3d5a","#00d4f5","#ffc83d","#d8b4fe","#67e8f9","#ff8fa0"];
+
+function rColor(v) { return v == null ? C.muted : v >= 67 ? C.green : v >= 34 ? C.yellow : C.red; }
+function rZone(v) { return v == null ? "" : v >= 67 ? "Green zone" : v >= 34 ? "Yellow zone" : "Red zone"; }
+function avgArr(arr, k) {
+  const v = arr.filter(d => d[k] != null).map(d => d[k]);
+  return v.length ? v.reduce((a,b) => a+b, 0) / v.length : null;
+}
+function sumArr(arr, k) {
+  const v = arr.filter(d => d[k] != null).map(d => d[k]);
+  return v.length ? v.reduce((a,b) => a+b, 0) : 0;
+}
+function fmt(v, d=1) { return v == null || isNaN(v) ? "--" : v.toFixed(d); }
+
+const gridP = { strokeDasharray: "2 6", stroke: "#161f36", vertical: false };
+const axT = { fill: "#4a5568", fontSize: 10 };
+
+function Tip({ active, payload, label }) {
+  if (!active || !payload?.length) return null;
+  return (
+    <div style={{ background: "#0d1120", border: "1px solid #1e2d4a", borderRadius: 10, padding: "10px 14px", minWidth: 130, boxShadow: "0 8px 32px #00000080" }}>
+      <p style={{ color: "#4a5568", fontSize: 10, marginBottom: 8 }}>{label}</p>
+      {payload.filter(p => p.value != null).map((p, i) => (
+        <div key={i} style={{ display: "flex", justifyContent: "space-between", gap: 16, margin: "3px 0" }}>
+          <span style={{ color: p.color, fontSize: 11 }}>{p.name}</span>
+          <b style={{ color: p.color, fontSize: 13 }}>{typeof p.value === "number" ? p.value.toFixed(1) : p.value}</b>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function Card({ label, value, unit, color, badge }) {
+  return (
+    <div style={{ background: C.card, border: "1px solid " + C.cardBorder, borderRadius: 16, padding: "18px 20px", minWidth: 118, flex: "1 1 118px", position: "relative", overflow: "hidden" }}>
+      <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 2, backgroundColor: color || C.muted, opacity: 0.7, borderRadius: "16px 16px 0 0" }} />
+      <p style={{ color: C.muted, fontSize: 9, textTransform: "uppercase", letterSpacing: "0.12em", margin: "0 0 10px" }}>{label}</p>
+      <p style={{ color: color || C.text, fontSize: 30, fontWeight: 800, lineHeight: 1, margin: 0, letterSpacing: "-0.03em" }}>
+        {fmt(value)}{unit && <span style={{ fontSize: 12, fontWeight: 400, color: C.muted, marginLeft: 3 }}>{unit}</span>}
+      </p>
+      {badge && <p style={{ color: color || C.muted, fontSize: 10, marginTop: 8, fontWeight: 500 }}>{badge}</p>}
+    </div>
+  );
+}
+
+function Box({ title, children }) {
+  return (
+    <div style={{ background: C.card, border: "1px solid " + C.cardBorder, borderRadius: 16, padding: "20px 16px 12px", marginBottom: 14 }}>
+      <p style={{ color: C.mutedLight, fontSize: 11, fontWeight: 500, margin: "0 0 18px 4px", textTransform: "uppercase", letterSpacing: "0.1em" }}>{title}</p>
+      {children}
+    </div>
+  );
+}
+
+function periodKey(dateStr, period) {
+  const [y, m] = dateStr.split("-");
+  const mn = parseInt(m);
+  if (period === "month") return y + "-" + m;
+  if (period === "quarter") return y + "-Q" + Math.ceil(mn / 3);
+  if (period === "half") return y + "-H" + (mn <= 6 ? 1 : 2);
+  if (period === "year") return y;
+  return dateStr;
+}
+
+function aggregateDaily(daily, period) {
+  if (period === "day") return daily.map(d => ({ ...d, ds: d.date.slice(5) }));
+  const groups = {};
+  daily.forEach(d => {
+    const key = periodKey(d.date, period);
+    if (!groups[key]) groups[key] = [];
+    groups[key].push(d);
+  });
+  return Object.keys(groups).sort().map(key => {
+    const arr = groups[key];
+    return {
+      ds: key, date: key,
+      recovery: avgArr(arr, "recovery"), hrv: avgArr(arr, "hrv"), restingHr: avgArr(arr, "restingHr"),
+      strain: avgArr(arr, "strain"), sleepPerformance: avgArr(arr, "sleepPerformance"),
+      sleepDuration: avgArr(arr, "sleepDuration"), sleepNeed: avgArr(arr, "sleepNeed"),
+      spo2: avgArr(arr, "spo2"), skinTemp: avgArr(arr, "skinTemp"), respiratoryRate: avgArr(arr, "respiratoryRate"),
+      calories: avgArr(arr, "calories"), avgHr: avgArr(arr, "avgHr"), maxHr: avgArr(arr, "maxHr"),
+      sleepEfficiency: avgArr(arr, "sleepEfficiency"), count: arr.length,
+    };
+  });
+}
+
+function RecoveryTab({ data }) {
+  return (
+    <Box title="Recovery Score">
+      <ResponsiveContainer width="100%" height={260}>
+        <AreaChart data={data} margin={{ top: 8, right: 4, bottom: 0, left: -18 }}>
+          <defs><linearGradient id="gR" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor={C.recovery} stopOpacity={0.22}/><stop offset="100%" stopColor={C.recovery} stopOpacity={0}/></linearGradient></defs>
+          <CartesianGrid {...gridP} />
+          <XAxis dataKey="ds" tick={axT} tickLine={false} axisLine={false} />
+          <YAxis domain={[0,100]} tick={axT} tickLine={false} axisLine={false} />
+          <Tooltip content={<Tip/>} />
+          <Area type="monotone" dataKey="recovery" name="Recovery" unit="%" stroke={C.recovery} fill="url(#gR)" strokeWidth={2.5} dot={{r:3,fill:C.recovery,strokeWidth:0}} connectNulls activeDot={{r:5}} />
+        </AreaChart>
+      </ResponsiveContainer>
+    </Box>
+  );
+}
+
+function SleepTab({ data }) {
+  return (
+    <Box title="Sleep Duration vs Need (hours)">
+      <ResponsiveContainer width="100%" height={260}>
+        <ComposedChart data={data} margin={{ top: 8, right: 4, bottom: 0, left: -18 }}>
+          <CartesianGrid {...gridP} />
+          <XAxis dataKey="ds" tick={axT} tickLine={false} axisLine={false} />
+          <YAxis tick={axT} tickLine={false} axisLine={false} unit="h" />
+          <Tooltip content={<Tip/>} />
+          <Legend iconType="circle" iconSize={7} wrapperStyle={{fontSize:10,color:C.muted,paddingTop:6}} />
+          <Line type="monotone" dataKey="sleepNeed" name="Need" stroke="#2e3a52" strokeWidth={1.5} strokeDasharray="4 3" dot={false} connectNulls />
+          <Area type="monotone" dataKey="sleepDuration" name="Duration" stroke={C.sleep} fillOpacity={0.15} fill={C.sleep} strokeWidth={2.5} dot={{r:3,fill:C.sleep,strokeWidth:0}} connectNulls activeDot={{r:5}} />
+        </ComposedChart>
+      </ResponsiveContainer>
+    </Box>
+  );
+}
+
+function StrainTab({ data }) {
+  return (
+    <Box title="Strain vs Recovery">
+      <ResponsiveContainer width="100%" height={260}>
+        <ComposedChart data={data} margin={{ top: 8, right: 8, bottom: 0, left: -18 }}>
+          <CartesianGrid {...gridP} />
+          <XAxis dataKey="ds" tick={axT} tickLine={false} axisLine={false} />
+          <YAxis yAxisId="l" domain={[0,21]} tick={axT} tickLine={false} axisLine={false} />
+          <YAxis yAxisId="r" orientation="right" domain={[0,100]} tick={axT} tickLine={false} axisLine={false} unit="%" />
+          <Tooltip content={<Tip/>} />
+          <Legend iconType="circle" iconSize={7} wrapperStyle={{fontSize:10,color:C.muted,paddingTop:6}} />
+          <Bar yAxisId="l" dataKey="strain" name="Strain" fill={C.strain} radius={[3,3,0,0]} maxBarSize={18} opacity={0.8} />
+          <Line yAxisId="r" type="monotone" dataKey="recovery" name="Recovery" stroke={C.recovery} strokeWidth={2.5} dot={{r:3,fill:C.recovery,strokeWidth:0}} connectNulls activeDot={{r:5}} />
+        </ComposedChart>
+      </ResponsiveContainer>
+    </Box>
+  );
+}
+
+function VitalsTab({ data }) {
+  return (
+    <Box title="Heart Rate (bpm)">
+      <ResponsiveContainer width="100%" height={230}>
+        <LineChart data={data} margin={{ top: 8, right: 4, bottom: 0, left: -18 }}>
+          <CartesianGrid {...gridP} />
+          <XAxis dataKey="ds" tick={axT} tickLine={false} axisLine={false} />
+          <YAxis tick={axT} tickLine={false} axisLine={false} unit="" />
+          <Tooltip content={<Tip/>} />
+          <Legend iconType="circle" iconSize={7} wrapperStyle={{fontSize:10,color:C.muted,paddingTop:6}} />
+          <Line type="monotone" dataKey="restingHr" name="Resting HR" stroke={C.hr} strokeWidth={2.5} dot={{r:3,fill:C.hr,strokeWidth:0}} connectNulls activeDot={{r:5}} />
+          <Line type="monotone" dataKey="avgHr" name="Avg HR" stroke="#ff8fa0" strokeWidth={1.5} strokeDasharray="5 3" dot={false} connectNulls />
+        </LineChart>
+      </ResponsiveContainer>
+    </Box>
+  );
+}
+
+function WorkoutSummary({ filtered }) {
+  const totalCount = filtered.length;
+  const totalCal = Math.round(sumArr(filtered, "calories"));
+  const totalMin = Math.round(sumArr(filtered, "duration"));
+  const avgStrain = avgArr(filtered, "strain");
+
+  const bySport = {};
+  filtered.forEach(w => {
+    const s = w.sport || "Other";
+    if (!bySport[s]) bySport[s] = { name: s, count: 0, calories: 0, duration: 0 };
+    bySport[s].count += 1;
+    bySport[s].calories += w.calories || 0;
+    bySport[s].duration += w.duration || 0;
+  });
+  const sportData = Object.values(bySport).sort((a,b) => b.count - a.count);
+
+  return (
+    <React.Fragment>
+      <div style={{ display: "flex", gap: 10, marginBottom: 14, overflowX: "auto", paddingBottom: 4 }}>
+        <Card label="Edzések száma" value={totalCount} color={C.strain} />
+        <Card label="Össz. kalória" value={totalCal} unit="kcal" color={C.cal} />
+        <Card label="Össz. idő" value={totalMin} unit="perc" color={C.hrv} />
+        <Card label="Átl. strain" value={avgStrain} color={C.strain} />
+      </div>
+      <Box title="Edzések sportáganként">
+        <ResponsiveContainer width="100%" height={260}>
+          <BarChart data={sportData} layout="vertical" margin={{ top: 8, right: 20, bottom: 0, left: 10 }}>
+            <CartesianGrid {...gridP} horizontal={false} />
+            <XAxis type="number" tick={axT} tickLine={false} axisLine={false} />
+            <YAxis type="category" dataKey="name" tick={{...axT, fontSize: 11}} tickLine={false} axisLine={false} width={110} />
+            <Tooltip content={<Tip/>} />
+            <Bar dataKey="count" name="Edzések" radius={[0,4,4,0]} maxBarSize={18}>
+              {sportData.map((entry, i) => <Cell key={i} fill={PALETTE[i % PALETTE.length]} />)}
+            </Bar>
+          </BarChart>
+        </ResponsiveContainer>
+      </Box>
+    </React.Fragment>
+  );
+}
+
+const RANGE_OPTIONS = [
+  { id: "30", label: "30 nap", days: 30, period: "day" },
+  { id: "90", label: "90 nap", days: 90, period: "day" },
+  { id: "month", label: "Havi", days: 0, period: "month" },
+  { id: "quarter", label: "Negyedéves", days: 0, period: "quarter" },
+  { id: "half", label: "Féléves", days: 0, period: "half" },
+  { id: "year", label: "Éves", days: 0, period: "year" },
+  { id: "all", label: "Összesen", days: 0, period: "day" },
+];
+
+function WHOOPDashboard() {
+  const [raw, setRaw] = useState(null);
+  const [range, setRange] = useState("30");
+  const [tab, setTab] = useState("recovery");
+  const [err, setErr] = useState(null);
+
+  useEffect(() => {
+    fetch("data.json?t=" + Date.now())
+      .then(r => r.json())
+      .then(setRaw)
+      .catch(e => setErr(String(e)));
+  }, []);
+
+  const daily = raw?.daily || [];
+  const workouts = raw?.workouts || [];
+
+  const rangeOpt = RANGE_OPTIONS.find(r => r.id === range) || RANGE_OPTIONS[0];
+
+  const filteredDaily = useMemo(() => {
+    if (rangeOpt.days === 0) return daily;
+    const cut = new Date();
+    cut.setDate(cut.getDate() - rangeOpt.days);
+    return daily.filter(d => new Date(d.date + "T12:00:00") >= cut);
+  }, [daily, rangeOpt]);
+
+  const chartData = useMemo(() => aggregateDaily(filteredDaily, rangeOpt.period), [filteredDaily, rangeOpt]);
+
+  const filteredWorkouts = useMemo(() => {
+    if (rangeOpt.days === 0) return workouts;
+    const cut = new Date();
+    cut.setDate(cut.getDate() - rangeOpt.days);
+    return workouts.filter(w => new Date(w.date + "T12:00:00") >= cut);
+  }, [workouts, rangeOpt]);
+
+  const avgRec = avgArr(filteredDaily, "recovery");
+  const avgHrvVal = avgArr(filteredDaily, "hrv");
+  const avgRestingHr = avgArr(filteredDaily, "restingHr");
+  const avgSleepPerf = avgArr(filteredDaily, "sleepPerformance");
+  const avgStrainVal = avgArr(filteredDaily, "strain");
+  const avgSleepDur = avgArr(filteredDaily, "sleepDuration");
+
+  const dateRange = filteredDaily.length
+    ? filteredDaily[0].date.slice(0,7) + "  →  " + filteredDaily[filteredDaily.length-1].date.slice(0,7)
+    : "";
+
+  const tabs = [
+    { id: "recovery", label: "Recovery" },
+    { id: "sleep", label: "Sleep" },
+    { id: "vitals", label: "Vitals" },
+    { id: "strain", label: "Strain" },
+    { id: "workouts", label: "Workouts" },
+  ];
+
+  if (err) return <div style={{color:"#ff3d5a", padding: 40, fontFamily: "monospace"}}>Hiba az adatok betöltésekor: {err}</div>;
+  if (!raw) return <div style={{color:"#4a5568", padding: 40}}>Betöltés...</div>;
+
+  return (
+    <div style={{ background: C.bg, minHeight: "100vh", color: C.text, padding: "20px 16px", maxWidth: 960, margin: "0 auto" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 20, flexWrap: "wrap", gap: 12 }}>
+        <div>
+          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 4 }}>
+            <div style={{ width: 36, height: 36, borderRadius: 10, background: "linear-gradient(135deg,#00ffc822,#4d9fff22)", border: "1px solid #00ffc840", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18 }}>⚡</div>
+            <h1 style={{ fontSize: 20, fontWeight: 800, margin: 0, letterSpacing: "-0.04em" }}>WHOOP Dashboard</h1>
+          </div>
+          <p style={{ color: C.muted, fontSize: 11, margin: "0 0 0 46px" }}>{filteredDaily.length} nap • {filteredWorkouts.length} edzés {dateRange && ("• " + dateRange)}</p>
+        </div>
+        <div style={{ display: "flex", gap: 6, flexWrap: "wrap", alignItems: "center" }}>
+          {RANGE_OPTIONS.map(r => (
+            <button key={r.id} onClick={() => setRange(r.id)} style={{
+              background: range === r.id ? C.recovery : "transparent",
+              color: range === r.id ? "#000" : C.muted,
+              border: "1px solid " + (range === r.id ? C.recovery : C.cardBorder),
+              borderRadius: 8, padding: "6px 12px", fontSize: 11, cursor: "pointer",
+              fontWeight: range === r.id ? 700 : 400
+            }}>{r.label}</button>
+          ))}
+        </div>
+      </div>
+
+      <div style={{ display: "flex", gap: 10, marginBottom: 20, overflowX: "auto", paddingBottom: 4 }}>
+        <Card label="Recovery" value={avgRec} unit="%" color={rColor(avgRec)} badge={rZone(avgRec)} />
+        <Card label="HRV" value={avgHrvVal} unit="ms" color={C.hrv} />
+        <Card label="Resting HR" value={avgRestingHr} unit="bpm" color={C.hr} />
+        <Card label="Sleep Score" value={avgSleepPerf} unit="%" color={C.sleep} />
+        <Card label="Strain" value={avgStrainVal} color={C.strain} />
+        <Card label="Sleep Dur." value={avgSleepDur} unit="h" color={C.sleep} />
+      </div>
+
+      <div style={{ display: "flex", borderBottom: "1px solid " + C.cardBorder, marginBottom: 16, overflowX: "auto" }}>
+        {tabs.map(t => (
+          <button key={t.id} onClick={() => setTab(t.id)} style={{
+            background: "transparent", border: "none",
+            borderBottom: "2px solid " + (tab === t.id ? C.recovery : "transparent"),
+            color: tab === t.id ? C.text : C.muted,
+            padding: "10px 18px", cursor: "pointer", fontSize: 12,
+            fontWeight: tab === t.id ? 700 : 400, marginBottom: -1,
+            whiteSpace: "nowrap", textTransform: "uppercase", letterSpacing: "0.04em"
+          }}>{t.label}</button>
+        ))}
+      </div>
+
+      {tab === "recovery" && <RecoveryTab data={chartData} />}
+      {tab === "sleep" && <SleepTab data={chartData} />}
+      {tab === "vitals" && <VitalsTab data={chartData} />}
+      {tab === "strain" && <StrainTab data={chartData} />}
+      {tab === "workouts" && <WorkoutSummary filtered={filteredWorkouts} />}
+
+      <p style={{ color: "#1a2747", fontSize: 10, textAlign: "center", marginTop: 16 }}>
+        Automatikusan frissül minden nap • WHOOP → Notion → Dashboard
+      </p>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<WHOOPDashboard />);
+</script>
+</body>
+</html>
