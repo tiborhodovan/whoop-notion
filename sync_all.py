@@ -1,39 +1,3 @@
-import base64
-from nacl import encoding, public
-
-def update_github_secret(secret_name, secret_value):
-    gh_pat = os.getenv("GH_PAT")
-    repo = os.getenv("GITHUB_REPOSITORY")
-    if not gh_pat or not repo:
-        print("GH_PAT vagy GITHUB_REPOSITORY hiányzik, secret update kihagyva.")
-        return
-
-    headers = {
-        "Authorization": f"Bearer {gh_pat}",
-        "Accept": "application/vnd.github+json",
-    }
-
-    key_resp = requests.get(
-        f"https://api.github.com/repos/{repo}/actions/secrets/public-key",
-        headers=headers,
-        timeout=30,
-    )
-    key_resp.raise_for_status()
-    key_data = key_resp.json()
-
-    public_key = public.PublicKey(key_data["key"], encoding.Base64Encoder())
-    sealed_box = public.SealedBox(public_key)
-    encrypted = sealed_box.encrypt(secret_value.encode("utf-8"))
-    encrypted_value = base64.b64encode(encrypted).decode("utf-8")
-
-    put_resp = requests.put(
-        f"https://api.github.com/repos/{repo}/actions/secrets/{secret_name}",
-        headers=headers,
-        json={"encrypted_value": encrypted_value, "key_id": key_data["key_id"]},
-        timeout=30,
-    )
-    put_resp.raise_for_status()
-    print(f"GitHub Secret '{secret_name}' frissítve.")
 import os
 import sys
 import time
