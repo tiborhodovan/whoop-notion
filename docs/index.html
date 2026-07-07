@@ -14,7 +14,6 @@
       --text:#eef2ff;
       --muted:#a8b3d1;
       --border:rgba(255,255,255,.09);
-      --grid:rgba(255,255,255,.08);
       --green:#22c55e;
       --yellow:#f59e0b;
       --red:#ef4444;
@@ -99,7 +98,7 @@
     .good{color:var(--green)}
     .warn{color:var(--yellow)}
     .bad{color:var(--red)}
-    .delta,.status,.foot{
+    .delta,.status{
       color:var(--muted);
       font-size:13px;
     }
@@ -178,37 +177,27 @@
 
       <div class="card wide">
         <div class="title">Recovery / Sleep / Strain</div>
-        <div class="chart-wrap chart-tall">
-          <canvas id="mainChart"></canvas>
-        </div>
+        <div class="chart-wrap chart-tall"><canvas id="mainChart"></canvas></div>
       </div>
 
       <div class="card wide">
         <div class="title">HRV és Resting HR</div>
-        <div class="chart-wrap chart-tall">
-          <canvas id="hrChart"></canvas>
-        </div>
+        <div class="chart-wrap chart-tall"><canvas id="hrChart"></canvas></div>
       </div>
 
       <div class="card half">
         <div class="title">Sleep Duration vs Sleep Need</div>
-        <div class="chart-wrap">
-          <canvas id="sleepChart"></canvas>
-        </div>
+        <div class="chart-wrap"><canvas id="sleepChart"></canvas></div>
       </div>
 
       <div class="card half">
         <div class="title">Calories</div>
-        <div class="chart-wrap">
-          <canvas id="caloriesChart"></canvas>
-        </div>
+        <div class="chart-wrap"><canvas id="caloriesChart"></canvas></div>
       </div>
 
       <div class="card third">
         <div class="title">Recovery zónák</div>
-        <div class="chart-wrap">
-          <canvas id="zoneChart"></canvas>
-        </div>
+        <div class="chart-wrap"><canvas id="zoneChart"></canvas></div>
       </div>
 
       <div class="card third">
@@ -233,7 +222,7 @@
       </div>
 
       <div class="card full">
-        <div class="title">Utolsó 14 használható nap</div>
+        <div class="title">Utolsó 14 nap</div>
         <table>
           <thead>
             <tr>
@@ -256,108 +245,103 @@
   </div>
 
   <script>
-    function isNum(v){
+    function isValidNumber(v) {
       return typeof v === "number" && Number.isFinite(v);
     }
 
-    function toNum(v){
+    function toNumberOrNull(v) {
+      if (v === null || v === undefined || v === "") return null;
       const n = Number(v);
       return Number.isFinite(n) ? n : null;
     }
 
-    function fmt(v, digits=0, suffix=""){
-      return isNum(v) ? v.toFixed(digits) + suffix : "—";
+    function fmt(v, digits = 0, suffix = "") {
+      return isValidNumber(v) ? v.toFixed(digits) + suffix : "—";
     }
 
-    function avg(arr){
-      const valid = arr.filter(isNum);
+    function avg(values) {
+      const valid = values.filter(isValidNumber);
       if (!valid.length) return null;
-      return valid.reduce((a,b)=>a+b,0) / valid.length;
+      return valid.reduce((a, b) => a + b, 0) / valid.length;
     }
 
-    function fmtDate(s){
-      const d = new Date(s);
-      return Number.isNaN(d.getTime()) ? s : d.toLocaleDateString("hu-HU");
+    function fmtDate(dateStr) {
+      const d = new Date(dateStr);
+      return Number.isNaN(d.getTime()) ? dateStr : d.toLocaleDateString("hu-HU");
     }
 
-    function deltaText(curr, prev, digits=0, suffix=""){
-      if(!isNum(curr) || !isNum(prev)) return "Nincs összehasonlítható előző érték";
-      const d = curr - prev;
-      const sign = d > 0 ? "+" : "";
-      return sign + d.toFixed(digits) + suffix + " előző naphoz képest";
-    }
-
-    function recoveryClass(v){
-      if(!isNum(v)) return "";
-      if(v >= 67) return "good";
-      if(v >= 34) return "warn";
+    function recoveryClass(v) {
+      if (!isValidNumber(v)) return "";
+      if (v >= 67) return "good";
+      if (v >= 34) return "warn";
       return "bad";
     }
 
-    function lastValid(data, key){
-      for(let i=data.length-1; i>=0; i--){
-        const v = toNum(data[i][key]);
-        if(isNum(v)) return { index:i, row:data[i], value:v };
+    function lastValidEntry(data, key) {
+      for (let i = data.length - 1; i >= 0; i--) {
+        const value = toNumberOrNull(data[i][key]);
+        if (isValidNumber(value)) return { index: i, value, row: data[i] };
       }
       return null;
     }
 
-    function prevValid(data, key, startIndex){
-      for(let i=startIndex-1; i>=0; i--){
-        const v = toNum(data[i][key]);
-        if(isNum(v)) return { index:i, row:data[i], value:v };
+    function prevValidEntry(data, key, fromIndex) {
+      for (let i = fromIndex - 1; i >= 0; i--) {
+        const value = toNumberOrNull(data[i][key]);
+        if (isValidNumber(value)) return { index: i, value, row: data[i] };
       }
       return null;
     }
 
-    function pairs(data, key){
-      const out = [];
-      for(const row of data){
-        const v = toNum(row[key]);
-        if(isNum(v)) out.push({ x: fmtDate(row.date), y: v });
+    function deltaText(current, previous, digits = 0, suffix = "") {
+      if (!isValidNumber(current) || !isValidNumber(previous)) {
+        return "Nincs összehasonlítható előző érték";
       }
-      return out;
+      const diff = current - previous;
+      const sign = diff > 0 ? "+" : "";
+      return sign + diff.toFixed(digits) + suffix + " előző naphoz képest";
     }
 
-    async function load(){
-      const status = document.getElementById("status");
+    async function load() {
+      const statusEl = document.getElementById("status");
 
-      try{
+      try {
         const res = await fetch("./data.json?t=" + Date.now());
-        if(!res.ok) throw new Error("HTTP " + res.status);
+        if (!res.ok) throw new Error("HTTP " + res.status);
 
         const raw = await res.json();
         const data = Array.isArray(raw) ? raw.slice() : [];
-        data.sort((a,b)=>new Date(a.date) - new Date(b.date));
+        data.sort((a, b) => new Date(a.date) - new Date(b.date));
 
-        if(!data.length){
-          status.textContent = "A data.json üres vagy nem tömb.";
+        if (!data.length) {
+          statusEl.textContent = "A data.json üres vagy nem tömb.";
           return;
         }
 
-        const recoveryPoints = pairs(data, "recovery");
-        const sleepPerfPoints = pairs(data, "sleepPerformance");
-        const strainPoints = pairs(data, "strain");
-        const hrvPoints = pairs(data, "hrv");
-        const rhrPoints = pairs(data, "restingHr");
-        const sleepDurationPoints = pairs(data, "sleepDuration");
-        const sleepNeedPoints = pairs(data, "sleepNeed");
-        const caloriesPoints = pairs(data, "calories");
+        const labels = data.map(d => fmtDate(d.date));
+        const recovery = data.map(d => toNumberOrNull(d.recovery));
+        const sleepPerf = data.map(d => toNumberOrNull(d.sleepPerformance));
+        const strain = data.map(d => toNumberOrNull(d.strain));
+        const hrv = data.map(d => toNumberOrNull(d.hrv));
+        const rhr = data.map(d => toNumberOrNull(d.restingHr));
+        const sleepDuration = data.map(d => toNumberOrNull(d.sleepDuration));
+        const sleepNeed = data.map(d => toNumberOrNull(d.sleepNeed));
+        const calories = data.map(d => toNumberOrNull(d.calories));
 
-        const latestRecovery = lastValid(data, "recovery");
-        const latestSleep = lastValid(data, "sleepPerformance");
-        const latestStrain = lastValid(data, "strain");
-        const latestHrv = lastValid(data, "hrv");
+        const latestRecovery = lastValidEntry(data, "recovery");
+        const latestSleep = lastValidEntry(data, "sleepPerformance");
+        const latestStrain = lastValidEntry(data, "strain");
+        const latestHrv = lastValidEntry(data, "hrv");
 
-        const prevRecovery = latestRecovery ? prevValid(data, "recovery", latestRecovery.index) : null;
-        const prevSleep = latestSleep ? prevValid(data, "sleepPerformance", latestSleep.index) : null;
-        const prevStrain = latestStrain ? prevValid(data, "strain", latestStrain.index) : null;
-        const prevHrv = latestHrv ? prevValid(data, "hrv", latestHrv.index) : null;
+        const prevRecovery = latestRecovery ? prevValidEntry(data, "recovery", latestRecovery.index) : null;
+        const prevSleep = latestSleep ? prevValidEntry(data, "sleepPerformance", latestSleep.index) : null;
+        const prevStrain = latestStrain ? prevValidEntry(data, "strain", latestStrain.index) : null;
+        const prevHrv = latestHrv ? prevValidEntry(data, "hrv", latestHrv.index) : null;
 
         document.getElementById("kpiRecovery").textContent = latestRecovery ? fmt(latestRecovery.value) : "—";
         document.getElementById("kpiRecovery").className = "value " + (latestRecovery ? recoveryClass(latestRecovery.value) : "");
         document.getElementById("kpiRecoveryDelta").textContent =
-          latestRecovery ? deltaText(latestRecovery.value, prevRecovery ? prevRecovery.value : null, 0, "") : "Nincs adat";
+          latestRecovery ? deltaText(latestRecovery.value, prevRecovery ? prevRecovery.value : null, 0) : "Nincs adat";
 
         document.getElementById("kpiSleep").textContent = latestSleep ? fmt(latestSleep.value, 0, "%") : "—";
         document.getElementById("kpiSleepDelta").textContent =
@@ -365,214 +349,209 @@
 
         document.getElementById("kpiStrain").textContent = latestStrain ? fmt(latestStrain.value, 1) : "—";
         document.getElementById("kpiStrainDelta").textContent =
-          latestStrain ? deltaText(latestStrain.value, prevStrain ? prevStrain.value : null, 1, "") : "Nincs adat";
+          latestStrain ? deltaText(latestStrain.value, prevStrain ? prevStrain.value : null, 1) : "Nincs adat";
 
         document.getElementById("kpiHrv").textContent = latestHrv ? fmt(latestHrv.value, 1) : "—";
         document.getElementById("kpiHrvDelta").textContent =
-          latestHrv ? deltaText(latestHrv.value, prevHrv ? prevHrv.value : null, 1, "") : "Nincs adat";
+          latestHrv ? deltaText(latestHrv.value, prevHrv ? prevHrv.value : null, 1) : "Nincs adat";
 
-        document.getElementById("avgRecovery").textContent = fmt(avg(recoveryPoints.map(d=>d.y)),1);
-        document.getElementById("avgSleepPerf").textContent = fmt(avg(sleepPerfPoints.map(d=>d.y)),1,"%");
-        document.getElementById("avgStrain").textContent = fmt(avg(strainPoints.map(d=>d.y)),1);
-        document.getElementById("avgHrv").textContent = fmt(avg(hrvPoints.map(d=>d.y)),1);
-        document.getElementById("avgRhr").textContent = fmt(avg(rhrPoints.map(d=>d.y)),1);
-        document.getElementById("avgCalories").textContent = fmt(avg(caloriesPoints.map(d=>d.y)),0);
+        document.getElementById("avgRecovery").textContent = fmt(avg(recovery), 1);
+        document.getElementById("avgSleepPerf").textContent = fmt(avg(sleepPerf), 1, "%");
+        document.getElementById("avgStrain").textContent = fmt(avg(strain), 1);
+        document.getElementById("avgHrv").textContent = fmt(avg(hrv), 1);
+        document.getElementById("avgRhr").textContent = fmt(avg(rhr), 1);
+        document.getElementById("avgCalories").textContent = fmt(avg(calories), 0);
 
         const latestRow = data[data.length - 1];
         const latestRows = [
           ["Dátum", fmtDate(latestRow.date)],
-          ["Recovery", fmt(toNum(latestRow.recovery))],
-          ["Sleep performance", fmt(toNum(latestRow.sleepPerformance),0,"%")],
-          ["Sleep duration", fmt(toNum(latestRow.sleepDuration),2," h")],
-          ["Sleep need", fmt(toNum(latestRow.sleepNeed),2," h")],
-          ["Strain", fmt(toNum(latestRow.strain),1)],
-          ["HRV", fmt(toNum(latestRow.hrv),1)],
-          ["Resting HR", fmt(toNum(latestRow.restingHr),0)],
-          ["Calories", fmt(toNum(latestRow.calories),0)]
+          ["Recovery", fmt(toNumberOrNull(latestRow.recovery))],
+          ["Sleep performance", fmt(toNumberOrNull(latestRow.sleepPerformance), 0, "%")],
+          ["Sleep duration", fmt(toNumberOrNull(latestRow.sleepDuration), 2, " h")],
+          ["Sleep need", fmt(toNumberOrNull(latestRow.sleepNeed), 2, " h")],
+          ["Strain", fmt(toNumberOrNull(latestRow.strain), 1)],
+          ["HRV", fmt(toNumberOrNull(latestRow.hrv), 1)],
+          ["Resting HR", fmt(toNumberOrNull(latestRow.restingHr), 0)],
+          ["Calories", fmt(toNumberOrNull(latestRow.calories), 0)]
         ];
 
         document.getElementById("latestTable").innerHTML = latestRows
-          .map(r => `<tr><td>${r[0]}</td><td class="mono">${r[1]}</td></tr>`)
+          .map(([k, v]) => `<tr><td>${k}</td><td class="mono">${v}</td></tr>`)
           .join("");
 
-        const recentUsable = data
-          .filter(d =>
-            isNum(toNum(d.recovery)) ||
-            isNum(toNum(d.sleepPerformance)) ||
-            isNum(toNum(d.strain)) ||
-            isNum(toNum(d.hrv)) ||
-            isNum(toNum(d.restingHr)) ||
-            isNum(toNum(d.calories))
-          )
-          .slice(-14)
-          .reverse();
-
-        document.getElementById("recentRows").innerHTML = recentUsable.map(d => `
+        const recent = data.slice(-14).reverse();
+        document.getElementById("recentRows").innerHTML = recent.map(d => `
           <tr>
             <td>${fmtDate(d.date)}</td>
-            <td class="mono">${fmt(toNum(d.recovery))}</td>
-            <td class="mono">${fmt(toNum(d.sleepPerformance),0,"%")}</td>
-            <td class="mono">${fmt(toNum(d.sleepDuration),2)}</td>
-            <td class="mono">${fmt(toNum(d.sleepNeed),2)}</td>
-            <td class="mono">${fmt(toNum(d.strain),1)}</td>
-            <td class="mono">${fmt(toNum(d.hrv),1)}</td>
-            <td class="mono">${fmt(toNum(d.restingHr),0)}</td>
-            <td class="mono">${fmt(toNum(d.calories),0)}</td>
+            <td class="mono">${fmt(toNumberOrNull(d.recovery))}</td>
+            <td class="mono">${fmt(toNumberOrNull(d.sleepPerformance), 0, "%")}</td>
+            <td class="mono">${fmt(toNumberOrNull(d.sleepDuration), 2)}</td>
+            <td class="mono">${fmt(toNumberOrNull(d.sleepNeed), 2)}</td>
+            <td class="mono">${fmt(toNumberOrNull(d.strain), 1)}</td>
+            <td class="mono">${fmt(toNumberOrNull(d.hrv), 1)}</td>
+            <td class="mono">${fmt(toNumberOrNull(d.restingHr), 0)}</td>
+            <td class="mono">${fmt(toNumberOrNull(d.calories), 0)}</td>
           </tr>
         `).join("");
 
-        const recoveryVals = recoveryPoints.map(d => d.y);
+        const recoveryValid = recovery.filter(isValidNumber);
         const zoneCounts = [
-          recoveryVals.filter(v => v >= 67).length,
-          recoveryVals.filter(v => v >= 34 && v < 67).length,
-          recoveryVals.filter(v => v < 34).length
+          recoveryValid.filter(v => v >= 67).length,
+          recoveryValid.filter(v => v >= 34 && v < 67).length,
+          recoveryValid.filter(v => v < 34).length
         ];
 
         const commonOptions = {
-          responsive:true,
-          maintainAspectRatio:false,
-          parsing:false,
-          interaction:{mode:"nearest", intersect:false},
-          plugins:{
-            legend:{labels:{color:"#cbd5e1"}}
+          responsive: true,
+          maintainAspectRatio: false,
+          spanGaps: true,
+          interaction: { mode: "index", intersect: false },
+          plugins: {
+            legend: { labels: { color: "#cbd5e1" } }
           },
-          scales:{
-            x:{
-              type:"category",
-              ticks:{color:"#a8b3d1", maxRotation:0, autoSkip:true},
-              grid:{color:"rgba(255,255,255,.06)"}
+          scales: {
+            x: {
+              ticks: { color: "#a8b3d1", maxRotation: 0, autoSkip: true },
+              grid: { color: "rgba(255,255,255,.06)" }
             },
-            y:{
-              ticks:{color:"#a8b3d1"},
-              grid:{color:"rgba(255,255,255,.06)"}
+            y: {
+              ticks: { color: "#a8b3d1" },
+              grid: { color: "rgba(255,255,255,.06)" }
             }
           }
         };
 
-        new Chart(document.getElementById("mainChart"),{
-          type:"line",
-          data:{
-            datasets:[
+        new Chart(document.getElementById("mainChart"), {
+          type: "line",
+          data: {
+            labels,
+            datasets: [
               {
-                label:"Recovery",
-                data:recoveryPoints,
-                borderColor:"#22c55e",
-                backgroundColor:"rgba(34,197,94,.15)",
-                tension:.25,
-                borderWidth:2,
-                pointRadius:0
+                label: "Recovery",
+                data: recovery,
+                borderColor: "#22c55e",
+                backgroundColor: "rgba(34,197,94,.15)",
+                tension: 0.25,
+                borderWidth: 2,
+                pointRadius: 0,
+                spanGaps: true
               },
               {
-                label:"Sleep %",
-                data:sleepPerfPoints,
-                borderColor:"#60a5fa",
-                backgroundColor:"rgba(96,165,250,.15)",
-                tension:.25,
-                borderWidth:2,
-                pointRadius:0
+                label: "Sleep %",
+                data: sleepPerf,
+                borderColor: "#60a5fa",
+                backgroundColor: "rgba(96,165,250,.15)",
+                tension: 0.25,
+                borderWidth: 2,
+                pointRadius: 0,
+                spanGaps: true
               },
               {
-                label:"Strain",
-                data:strainPoints,
-                borderColor:"#f59e0b",
-                backgroundColor:"rgba(245,158,11,.15)",
-                tension:.25,
-                borderWidth:2,
-                pointRadius:0
+                label: "Strain",
+                data: strain,
+                borderColor: "#f59e0b",
+                backgroundColor: "rgba(245,158,11,.15)",
+                tension: 0.25,
+                borderWidth: 2,
+                pointRadius: 0,
+                spanGaps: true
               }
             ]
           },
-          options:commonOptions
+          options: commonOptions
         });
 
-        new Chart(document.getElementById("hrChart"),{
-          type:"line",
-          data:{
-            datasets:[
+        new Chart(document.getElementById("hrChart"), {
+          type: "line",
+          data: {
+            labels,
+            datasets: [
               {
-                label:"HRV",
-                data:hrvPoints,
-                borderColor:"#a78bfa",
-                backgroundColor:"rgba(167,139,250,.15)",
-                tension:.25,
-                borderWidth:2,
-                pointRadius:0
+                label: "HRV",
+                data: hrv,
+                borderColor: "#a78bfa",
+                backgroundColor: "rgba(167,139,250,.15)",
+                tension: 0.25,
+                borderWidth: 2,
+                pointRadius: 0,
+                spanGaps: true
               },
               {
-                label:"Resting HR",
-                data:rhrPoints,
-                borderColor:"#f472b6",
-                backgroundColor:"rgba(244,114,182,.15)",
-                tension:.25,
-                borderWidth:2,
-                pointRadius:0
+                label: "Resting HR",
+                data: rhr,
+                borderColor: "#f472b6",
+                backgroundColor: "rgba(244,114,182,.15)",
+                tension: 0.25,
+                borderWidth: 2,
+                pointRadius: 0,
+                spanGaps: true
               }
             ]
           },
-          options:commonOptions
+          options: commonOptions
         });
 
-        new Chart(document.getElementById("sleepChart"),{
-          type:"bar",
-          data:{
-            datasets:[
+        new Chart(document.getElementById("sleepChart"), {
+          type: "bar",
+          data: {
+            labels,
+            datasets: [
               {
-                label:"Sleep duration",
-                data:sleepDurationPoints,
-                backgroundColor:"rgba(34,211,238,.75)"
+                label: "Sleep duration",
+                data: sleepDuration,
+                backgroundColor: "rgba(34,211,238,.75)"
               },
               {
-                label:"Sleep need",
-                data:sleepNeedPoints,
-                backgroundColor:"rgba(255,255,255,.25)"
+                label: "Sleep need",
+                data: sleepNeed,
+                backgroundColor: "rgba(255,255,255,.25)"
               }
             ]
           },
-          options:commonOptions
+          options: commonOptions
         });
 
-        new Chart(document.getElementById("caloriesChart"),{
-          type:"bar",
-          data:{
-            datasets:[
+        new Chart(document.getElementById("caloriesChart"), {
+          type: "bar",
+          data: {
+            labels,
+            datasets: [
               {
-                label:"Calories",
-                data:caloriesPoints,
-                backgroundColor:"rgba(239,68,68,.72)"
+                label: "Calories",
+                data: calories,
+                backgroundColor: "rgba(239,68,68,.72)"
               }
             ]
           },
-          options:commonOptions
+          options: commonOptions
         });
 
-        new Chart(document.getElementById("zoneChart"),{
-          type:"doughnut",
-          data:{
-            labels:["Green 67+", "Yellow 34-66", "Red 0-33"],
-            datasets:[{
-              data:zoneCounts,
-              backgroundColor:["#22c55e","#f59e0b","#ef4444"],
-              borderWidth:0
+        new Chart(document.getElementById("zoneChart"), {
+          type: "doughnut",
+          data: {
+            labels: ["Green 67+", "Yellow 34-66", "Red 0-33"],
+            datasets: [{
+              data: zoneCounts,
+              backgroundColor: ["#22c55e", "#f59e0b", "#ef4444"],
+              borderWidth: 0
             }]
           },
-          options:{
-            responsive:true,
-            maintainAspectRatio:false,
-            plugins:{
-              legend:{labels:{color:"#cbd5e1"}}
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: { labels: { color: "#cbd5e1" } }
             }
           }
         });
 
-        status.textContent =
+        statusEl.textContent =
           "Sikeres betöltés: " + data.length +
-          " nap • recovery pontok: " + recoveryPoints.length +
-          " • HRV pontok: " + hrvPoints.length +
-          " • utolsó dátum: " + fmtDate(latestRow.date);
-
-      }catch(err){
+          " nap • utolsó dátum: " + fmtDate(latestRow.date) +
+          " • recovery pontok: " + recoveryValid.length;
+      } catch (err) {
         console.error(err);
-        status.textContent = "Hiba a betöltéskor: " + err.message;
+        document.getElementById("status").textContent = "Hiba a betöltéskor: " + err.message;
       }
     }
 
