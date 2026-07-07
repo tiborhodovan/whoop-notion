@@ -5,6 +5,11 @@ on:
     - cron: '0 6 * * *'
   workflow_dispatch:
 
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
 jobs:
   sync:
     runs-on: ubuntu-latest
@@ -29,3 +34,18 @@ jobs:
           GH_PAT: ${{ secrets.GH_PAT }}
           GITHUB_REPOSITORY: ${{ github.repository }}
         run: python sync_all.py
+
+      - name: Export data for dashboard
+        env:
+          NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
+          NOTION_DATABASE_ID: ${{ secrets.NOTION_DATABASE_ID }}
+          NOTION_WORKOUT_DATABASE_ID: ${{ secrets.NOTION_WORKOUT_DATABASE_ID }}
+        run: python scripts/export_data.py
+
+      - name: Commit dashboard data
+        run: |
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+          git add docs/data.json
+          git diff --staged --quiet || git commit -m "Update dashboard data"
+          git push
