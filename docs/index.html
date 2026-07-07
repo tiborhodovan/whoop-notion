@@ -6,23 +6,42 @@
 <title>WHOOP Dashboard</title>
 <style>
   * { box-sizing: border-box; }
-  body { margin: 0; background: #07090f; color: #e8eef8; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
-  #root { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 24px; }
-  .card { max-width: 720px; width: 100%; background: #0d1120; border: 1px solid #161f36; border-radius: 18px; padding: 28px; box-shadow: 0 8px 32px rgba(0,0,0,.35); }
+  body {
+    margin: 0;
+    background: #07090f;
+    color: #e8eef8;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  }
+  #root {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+  .card {
+    max-width: 720px;
+    width: 100%;
+    background: #0d1120;
+    border: 1px solid #161f36;
+    border-radius: 18px;
+    padding: 28px;
+    box-shadow: 0 8px 32px rgba(0,0,0,.35);
+  }
   h1 { margin: 0 0 10px; font-size: 28px; }
   p { margin: 0 0 14px; color: #aab6c8; line-height: 1.6; }
-  code { background: #161f36; padding: 2px 6px; border-radius: 6px; color: #00ffc8; }
-  a { color: #00ffc8; }
+  code {
+    background: #161f36;
+    padding: 2px 6px;
+    border-radius: 6px;
+    color: #00ffc8;
+  }
+  .ok { color: #00ffc8; }
 </style>
 </head>
 <body>
 <div id="root">
   <div class="card">
     <h1>WHOOP Dashboard</h1>
-    <p>A korábbi JavaScript/CDN verzió hibája miatt ez egy ideiglenes üzenet.</p>
-    <p>A WHOOP → Notion szinkron és a GitHub Pages deploy már működik, az adatok megvannak a <code>docs/data.json</code> fájlban.</p>
-    <p>Következő lépésként érdemes a dashboardot egy buildelt React appra áttenni, hogy a grafikonok újra megjelenjenek stabilan.</p>
-  </div>
-</div>
-</body>
-</html>
+    <p class="ok">A statikus Pages deploy rendben működik.</p>
+    <p>A régi fekete képernyő a böngészőben futtatott CD
