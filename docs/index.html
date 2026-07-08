@@ -1,545 +1,886 @@
 <!DOCTYPE html>
 <html lang="hu">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>WHOOP Dashboard</title>
-  <style>
-    :root{
-      --bg:#0b1020;
-      --bg2:#11182e;
-      --card:#151d38;
-      --card2:#1a2444;
-      --text:#eef2ff;
-      --muted:#a8b3d1;
-      --border:rgba(255,255,255,.09);
-      --grid:rgba(255,255,255,.08);
-      --green:#22c55e;
-      --yellow:#f59e0b;
-      --red:#ef4444;
-      --blue:#60a5fa;
-      --violet:#a78bfa;
-      --cyan:#22d3ee;
-      --pink:#f472b6;
-      --shadow:0 12px 28px rgba(0,0,0,.28);
-    }
-    *{box-sizing:border-box}
-    body{
-      margin:0;
-      font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
-      color:var(--text);
-      background:linear-gradient(180deg,var(--bg) 0%,var(--bg2) 100%);
-    }
-    .wrap{
-      max-width:1400px;
-      margin:0 auto;
-      padding:24px;
-    }
-    header{
-      display:flex;
-      justify-content:space-between;
-      align-items:flex-end;
-      gap:16px;
-      margin-bottom:24px;
-      flex-wrap:wrap;
-    }
-    h1{
-      margin:0;
-      font-size:clamp(28px,4vw,44px);
-      line-height:1.05;
-      letter-spacing:-.03em;
-    }
-    .sub{
-      margin-top:8px;
-      color:var(--muted);
-      font-size:14px;
-    }
-    .pill{
-      display:inline-flex;
-      align-items:center;
-      gap:8px;
-      padding:10px 14px;
-      border:1px solid var(--border);
-      background:rgba(255,255,255,.04);
-      border-radius:999px;
-      color:var(--muted);
-      font-size:13px;
-    }
-    .grid{
-      display:grid;
-      grid-template-columns:repeat(12,1fr);
-      gap:16px;
-    }
-    .card{
-      background:linear-gradient(180deg,var(--card) 0%,var(--card2) 100%);
-      border:1px solid var(--border);
-      border-radius:20px;
-      padding:18px;
-      box-shadow:var(--shadow);
-    }
-    .kpi{grid-column:span 3}
-    .wide{grid-column:span 6}
-    .half{grid-column:span 6}
-    .third{grid-column:span 4}
-    .full{grid-column:span 12}
-    .title{
-      font-size:12px;
-      color:var(--muted);
-      margin-bottom:10px;
-      text-transform:uppercase;
-      letter-spacing:.08em;
-    }
-    .value{
-      font-size:34px;
-      font-weight:800;
-      letter-spacing:-.03em;
-      margin-bottom:6px;
-    }
-    .good{color:var(--green)}
-    .warn{color:var(--yellow)}
-    .bad{color:var(--red)}
-    .delta,.status,.legend,.small{
-      color:var(--muted);
-      font-size:13px;
-    }
-    .chart-box{
-      width:100%;
-      height:320px;
-      border-radius:14px;
-      overflow:hidden;
-      background:rgba(255,255,255,.02);
-      border:1px solid rgba(255,255,255,.04);
-    }
-    .chart-box.tall{
-      height:380px;
-    }
-    svg{
-      width:100%;
-      height:100%;
-      display:block;
-    }
-    table{
-      width:100%;
-      border-collapse:collapse;
-      font-size:14px;
-    }
-    th,td{
-      text-align:left;
-      padding:12px 10px;
-      border-bottom:1px solid var(--border);
-      vertical-align:top;
-    }
-    th{
-      color:var(--muted);
-      font-size:12px;
-      text-transform:uppercase;
-      letter-spacing:.08em;
-      font-weight:600;
-    }
-    .mono{
-      font-variant-numeric:tabular-nums;
-    }
-    .legend{
-      display:flex;
-      gap:14px;
-      flex-wrap:wrap;
-      margin-top:10px;
-    }
-    .legend span::before{
-      content:"";
-      display:inline-block;
-      width:10px;
-      height:10px;
-      border-radius:999px;
-      margin-right:6px;
-      vertical-align:middle;
-      background:currentColor;
-    }
-    .l-green{color:var(--green)}
-    .l-blue{color:var(--blue)}
-    .l-yellow{color:var(--yellow)}
-    .l-violet{color:var(--violet)}
-    .l-pink{color:var(--pink)}
-    .l-cyan{color:var(--cyan)}
-    .l-red{color:var(--red)}
-    @media (max-width:1100px){
-      .kpi,.wide,.half,.third{grid-column:span 12}
-    }
-  </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>WHOOP Dashboard</title>
+<style>
+  :root{
+    --bg: #080d12;
+    --bg-grad: #0d151b;
+    --panel: #101a21;
+    --panel2: #142129;
+    --line: rgba(150,200,210,.10);
+    --line-strong: rgba(150,200,210,.22);
+    --text: #e8f2f2;
+    --muted: #7c9499;
+    --muted2: #56686d;
+    --teal: #2de3c6;
+    --amber: #ffb648;
+    --coral: #ff6b5e;
+    --violet: #9b8cff;
+    --blue: #59a6ff;
+    --pink: #ff7bb0;
+    --green-zone: #2de3c6;
+    --yellow-zone: #ffb648;
+    --red-zone: #ff6b5e;
+    --shadow: 0 20px 50px rgba(0,0,0,.45);
+    --radius: 18px;
+  }
+  *{box-sizing:border-box}
+  ::selection{background:var(--teal); color:#04120f}
+  body{
+    margin:0;
+    font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
+    color:var(--text);
+    background:
+      radial-gradient(1200px 600px at 85% -10%, rgba(45,227,198,.07), transparent 60%),
+      radial-gradient(900px 500px at 0% 0%, rgba(155,140,255,.05), transparent 55%),
+      linear-gradient(180deg, var(--bg) 0%, var(--bg-grad) 100%);
+    min-height:100vh;
+  }
+  .mono{ font-family:'JetBrains Mono', 'SF Mono', Menlo, Consolas, monospace; font-variant-numeric:tabular-nums; }
+  .wrap{ max-width:1440px; margin:0 auto; padding:28px 28px 60px; }
+
+  header{
+    display:flex; justify-content:space-between; align-items:flex-start;
+    gap:20px; margin-bottom:22px; flex-wrap:wrap;
+  }
+  .brand{ display:flex; align-items:center; gap:14px; }
+  .brand-mark{
+    width:44px; height:44px; border-radius:12px;
+    background: conic-gradient(from 210deg, var(--teal), var(--blue) 40%, var(--violet) 70%, var(--teal) 100%);
+    display:flex; align-items:center; justify-content:center;
+    box-shadow: 0 0 26px rgba(45,227,198,.35);
+    flex-shrink:0;
+  }
+  .brand-mark svg{ width:22px; height:22px; }
+  h1{
+    margin:0; font-size:clamp(22px,3vw,30px); font-weight:800;
+    letter-spacing:-.02em; line-height:1.1;
+  }
+  .sub{ margin-top:3px; color:var(--muted); font-size:13px; letter-spacing:.01em;}
+  .sub .mono{ color:var(--teal); }
+
+  .top-status{
+    display:flex; align-items:center; gap:10px;
+    font-size:12px; color:var(--muted2);
+    border:1px solid var(--line); background:rgba(255,255,255,.02);
+    padding:9px 14px; border-radius:999px;
+  }
+  .dot{ width:7px; height:7px; border-radius:50%; background:var(--teal); box-shadow:0 0 8px var(--teal); }
+
+  .controls{
+    display:flex; flex-wrap:wrap; gap:12px; align-items:center;
+    padding:14px 16px; margin-bottom:22px;
+    background: var(--panel);
+    border:1px solid var(--line);
+    border-radius:16px;
+  }
+  .control-group{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+  .control-label{
+    font-size:10.5px; text-transform:uppercase; letter-spacing:.1em;
+    color:var(--muted2); margin-right:2px; white-space:nowrap;
+  }
+  .chip{
+    appearance:none; border:1px solid var(--line); background:transparent;
+    color:var(--muted); font-family:inherit; font-size:12.5px; font-weight:600;
+    padding:7px 13px; border-radius:999px; cursor:pointer;
+    transition: all .15s ease; white-space:nowrap;
+  }
+  .chip:hover{ border-color:var(--line-strong); color:var(--text); background:rgba(255,255,255,.03); }
+  .chip.active{ background:var(--teal); border-color:var(--teal); color:#04120f; }
+  .chip.active:hover{ color:#04120f; }
+  select.chip{ padding-right:10px; }
+  .custom-range{ display:none; align-items:center; gap:8px; }
+  .custom-range.show{ display:flex; }
+  .custom-range input[type="date"]{
+    background:var(--panel2); border:1px solid var(--line); color:var(--text);
+    font-family:inherit; font-size:12px; border-radius:8px; padding:6px 8px;
+    color-scheme: dark;
+  }
+  .divider-v{ width:1px; align-self:stretch; background:var(--line); margin:0 4px; }
+  .spacer{ flex:1 1 auto; }
+
+  .grid{ display:grid; grid-template-columns:repeat(12,1fr); gap:16px; }
+  .card{
+    background: linear-gradient(180deg, var(--panel) 0%, var(--panel2) 100%);
+    border:1px solid var(--line);
+    border-radius: var(--radius);
+    padding:18px 20px;
+    box-shadow: var(--shadow);
+    position:relative;
+    overflow:hidden;
+  }
+  .span-2{grid-column:span 2} .span-3{grid-column:span 3} .span-4{grid-column:span 4}
+  .span-5{grid-column:span 5} .span-6{grid-column:span 6} .span-7{grid-column:span 7}
+  .span-8{grid-column:span 8} .span-12{grid-column:span 12}
+  @media (max-width:1100px){
+    .span-2,.span-3,.span-4,.span-5,.span-6,.span-7,.span-8{ grid-column:span 12; }
+  }
+
+  .card-title{
+    font-size:11px; color:var(--muted); text-transform:uppercase;
+    letter-spacing:.09em; margin-bottom:14px; display:flex;
+    justify-content:space-between; align-items:center; gap:8px;
+  }
+  .card-title .hint{ font-size:10.5px; color:var(--muted2); text-transform:none; letter-spacing:0; }
+
+  .ring-row{ display:flex; align-items:center; gap:22px; }
+  .ring-wrap{ position:relative; width:132px; height:132px; flex-shrink:0; }
+  .ring-wrap svg{ width:100%; height:100%; transform:rotate(-90deg); }
+  .ring-center{ position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; }
+  .ring-value{ font-size:32px; font-weight:800; letter-spacing:-.02em; }
+  .ring-label{ font-size:10px; color:var(--muted2); text-transform:uppercase; letter-spacing:.08em; margin-top:2px; }
+  .ring-side{ display:flex; flex-direction:column; gap:10px; min-width:0; }
+  .ring-stat{ display:flex; justify-content:space-between; gap:14px; font-size:12.5px; }
+  .ring-stat .k{ color:var(--muted); }
+  .ring-stat .v{ font-weight:700; }
+
+  .kpi-value{ font-size:30px; font-weight:800; letter-spacing:-.02em; margin-bottom:4px; }
+  .kpi-delta{ font-size:12.5px; color:var(--muted); }
+  .kpi-delta.up{ color:var(--teal); } .kpi-delta.down{ color:var(--coral); }
+  .good{color:var(--green-zone)} .warn{color:var(--yellow-zone)} .bad{color:var(--red-zone)}
+  .sparkline{ margin-top:10px; height:34px; }
+  .sparkline svg{ width:100%; height:100%; display:block; }
+
+  .chart-box{ width:100%; height:280px; position:relative; }
+  .chart-box.tall{ height:320px; }
+  .chart-box svg{ width:100%; height:100%; display:block; overflow:visible; }
+  .legend{ display:flex; gap:16px; flex-wrap:wrap; margin-top:12px; }
+  .legend span{ display:inline-flex; align-items:center; gap:6px; font-size:12px; color:var(--muted); }
+  .legend .sw{ width:9px; height:9px; border-radius:3px; display:inline-block; }
+  .axis-label{ font-size:10px; fill:var(--muted2); font-family:'JetBrains Mono',monospace; }
+  .grid-line{ stroke:var(--line); stroke-width:1; }
+
+  table{ width:100%; border-collapse:collapse; font-size:13px; }
+  th,td{ text-align:left; padding:10px 8px; border-bottom:1px solid var(--line); white-space:nowrap; }
+  th{ color:var(--muted2); font-size:10px; text-transform:uppercase; letter-spacing:.08em; font-weight:700; cursor:pointer; user-select:none; }
+  th:hover{ color:var(--teal); }
+  th.sorted::after{ content:" ▾"; color:var(--teal); }
+  th.sorted.asc::after{ content:" ▴"; }
+  tbody tr:hover{ background:rgba(255,255,255,.02); }
+  .table-scroll{ overflow-x:auto; }
+  .badge{ display:inline-block; padding:2px 9px; border-radius:999px; font-size:11px; font-weight:700; background:rgba(45,227,198,.12); color:var(--teal); }
+
+  .zones-bar{ display:flex; height:14px; border-radius:8px; overflow:hidden; margin-bottom:14px; }
+  .zones-legend{ display:flex; justify-content:space-between; font-size:12px; }
+  .zones-legend div{ text-align:center; }
+  .zones-legend .n{ font-size:20px; font-weight:800; display:block; }
+
+  .status-line{ color:var(--muted2); font-size:12px; margin-top:10px; }
+  .empty-msg{ padding:30px; text-align:center; color:var(--muted2); font-size:13px; }
+
+  footer{ text-align:center; color:var(--muted2); font-size:11.5px; margin-top:36px; }
+
+  @media (prefers-reduced-motion: reduce){ *{ transition:none !important; animation:none !important; } }
+</style>
 </head>
 <body>
-  <div class="wrap">
-    <header>
+<div class="wrap">
+
+  <header>
+    <div class="brand">
+      <div class="brand-mark">
+        <svg viewBox="0 0 24 24" fill="none"><path d="M12 2v6M12 16v6M2 12h6M16 12h6" stroke="#04120f" stroke-width="2.4" stroke-linecap="round"/><circle cx="12" cy="12" r="3.4" fill="#04120f"/></svg>
+      </div>
       <div>
         <h1>WHOOP Dashboard</h1>
-        <div class="sub">Recovery, sleep, strain, HRV és pulzus trendek</div>
+        <div class="sub">Recovery &middot; Sleep &middot; Strain &middot; HRV &amp; edzés napló &middot; <span class="mono" id="rangeLabelSub">—</span></div>
       </div>
-      <div class="pill">Forrás: <strong>./data.json</strong></div>
-    </header>
+    </div>
+    <div class="top-status"><span class="dot"></span><span id="statusPill">betöltés…</span></div>
+  </header>
 
-    <section class="grid">
-      <div class="card kpi">
-        <div class="title">Utolsó recovery</div>
-        <div class="value" id="kpiRecovery">—</div>
-        <div class="delta" id="kpiRecoveryDelta">—</div>
-      </div>
-
-      <div class="card kpi">
-        <div class="title">Utolsó sleep %</div>
-        <div class="value" id="kpiSleep">—</div>
-        <div class="delta" id="kpiSleepDelta">—</div>
-      </div>
-
-      <div class="card kpi">
-        <div class="title">Utolsó strain</div>
-        <div class="value" id="kpiStrain">—</div>
-        <div class="delta" id="kpiStrainDelta">—</div>
-      </div>
-
-      <div class="card kpi">
-        <div class="title">Utolsó HRV</div>
-        <div class="value" id="kpiHrv">—</div>
-        <div class="delta" id="kpiHrvDelta">—</div>
-      </div>
-
-      <div class="card wide">
-        <div class="title">Recovery / Sleep / Strain</div>
-        <div id="chartMain" class="chart-box tall"></div>
-        <div class="legend">
-          <span class="l-green">Recovery</span>
-          <span class="l-blue">Sleep %</span>
-          <span class="l-yellow">Strain</span>
-        </div>
-      </div>
-
-      <div class="card wide">
-        <div class="title">HRV és Resting HR</div>
-        <div id="chartHr" class="chart-box tall"></div>
-        <div class="legend">
-          <span class="l-violet">HRV</span>
-          <span class="l-pink">Resting HR</span>
-        </div>
-      </div>
-
-      <div class="card half">
-        <div class="title">Sleep Duration vs Sleep Need</div>
-        <div id="chartSleep" class="chart-box"></div>
-        <div class="legend">
-          <span class="l-cyan">Sleep duration</span>
-          <span class="l-blue">Sleep need</span>
-        </div>
-      </div>
-
-      <div class="card half">
-        <div class="title">Calories</div>
-        <div id="chartCalories" class="chart-box"></div>
-        <div class="legend">
-          <span class="l-red">Calories</span>
-        </div>
-      </div>
-
-      <div class="card third">
-        <div class="title">Recovery zónák</div>
-        <table>
-          <tbody id="zonesTable"></tbody>
-        </table>
-      </div>
-
-      <div class="card third">
-        <div class="title">Átlagok</div>
-        <table>
-          <tbody>
-            <tr><td>Recovery</td><td class="mono" id="avgRecovery">—</td></tr>
-            <tr><td>Sleep performance</td><td class="mono" id="avgSleepPerf">—</td></tr>
-            <tr><td>Strain</td><td class="mono" id="avgStrain">—</td></tr>
-            <tr><td>HRV</td><td class="mono" id="avgHrv">—</td></tr>
-            <tr><td>Resting HR</td><td class="mono" id="avgRhr">—</td></tr>
-            <tr><td>Calories</td><td class="mono" id="avgCalories">—</td></tr>
-          </tbody>
-        </table>
-      </div>
-
-      <div class="card third">
-        <div class="title">Legutóbbi nap</div>
-        <table>
-          <tbody id="latestTable"></tbody>
-        </table>
-      </div>
-
-      <div class="card full">
-        <div class="title">Utolsó 14 nap</div>
-        <table>
-          <thead>
-            <tr>
-              <th>Dátum</th>
-              <th>Recovery</th>
-              <th>Sleep %</th>
-              <th>Sleep h</th>
-              <th>Sleep need</th>
-              <th>Strain</th>
-              <th>HRV</th>
-              <th>RHR</th>
-              <th>Calories</th>
-            </tr>
-          </thead>
-          <tbody id="recentRows"></tbody>
-        </table>
-        <div class="status" id="status">Betöltés...</div>
-      </div>
-    </section>
+  <div class="controls">
+    <div class="control-group">
+      <span class="control-label">Időszak</span>
+      <button class="chip" data-range="7">7 nap</button>
+      <button class="chip" data-range="30">30 nap</button>
+      <button class="chip active" data-range="90">90 nap</button>
+      <button class="chip" data-range="180">180 nap</button>
+      <button class="chip" data-range="365">1 év</button>
+      <button class="chip" data-range="all">Teljes</button>
+      <button class="chip" data-range="custom">Egyéni</button>
+    </div>
+    <div class="custom-range" id="customRange">
+      <input type="date" id="dateFrom" />
+      <span style="color:var(--muted2)">–</span>
+      <input type="date" id="dateTo" />
+    </div>
+    <div class="divider-v"></div>
+    <div class="control-group">
+      <span class="control-label">Edzés</span>
+      <select class="chip" id="sportFilter"><option value="all">Minden sport</option></select>
+    </div>
+    <div class="spacer"></div>
+    <div class="control-group">
+      <span class="control-label">Nézet</span>
+      <button class="chip active" data-view="overview">Áttekintés</button>
+      <button class="chip" data-view="workouts">Edzések</button>
+    </div>
   </div>
 
-  <script>
-    function isValidNumber(v){
-      return typeof v === "number" && Number.isFinite(v);
+  <section id="viewOverview">
+    <div class="grid">
+
+      <div class="card span-4">
+        <div class="card-title">Legutóbbi Recovery<span class="hint" id="recoveryDateHint"></span></div>
+        <div class="ring-row">
+          <div class="ring-wrap">
+            <svg viewBox="0 0 132 132">
+              <circle cx="66" cy="66" r="56" fill="none" stroke="var(--line)" stroke-width="12"/>
+              <circle id="recoveryRingFg" cx="66" cy="66" r="56" fill="none" stroke="var(--teal)" stroke-width="12" stroke-linecap="round" stroke-dasharray="352" stroke-dashoffset="352"/>
+            </svg>
+            <div class="ring-center">
+              <div class="ring-value mono" id="ringValue">—</div>
+              <div class="ring-label">recovery</div>
+            </div>
+          </div>
+          <div class="ring-side">
+            <div class="ring-stat"><span class="k">HRV</span><span class="v mono" id="ringHrv">—</span></div>
+            <div class="ring-stat"><span class="k">Nyugalmi pulzus</span><span class="v mono" id="ringRhr">—</span></div>
+            <div class="ring-stat"><span class="k">Alvás %</span><span class="v mono" id="ringSleep">—</span></div>
+            <div class="ring-stat"><span class="k">SpO2</span><span class="v mono" id="ringSpo2">—</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card span-2">
+        <div class="card-title">Strain</div>
+        <div class="kpi-value mono" id="kpiStrain">—</div>
+        <div class="kpi-delta" id="kpiStrainDelta">—</div>
+        <div class="sparkline" id="sparkStrain"></div>
+      </div>
+
+      <div class="card span-2">
+        <div class="card-title">Alvás óra</div>
+        <div class="kpi-value mono" id="kpiSleepH">—</div>
+        <div class="kpi-delta" id="kpiSleepHDelta">—</div>
+        <div class="sparkline" id="sparkSleepH"></div>
+      </div>
+
+      <div class="card span-2">
+        <div class="card-title">Kalória / nap</div>
+        <div class="kpi-value mono" id="kpiCalories">—</div>
+        <div class="kpi-delta" id="kpiCaloriesDelta">—</div>
+        <div class="sparkline" id="sparkCalories"></div>
+      </div>
+
+      <div class="card span-2">
+        <div class="card-title">Napok a szűrőben</div>
+        <div class="kpi-value mono" id="kpiDayCount">—</div>
+        <div class="kpi-delta" id="kpiDayCountSub">—</div>
+      </div>
+
+      <div class="card span-8">
+        <div class="card-title">Recovery / Alvás % / Strain</div>
+        <div class="chart-box tall" id="chartMain"></div>
+        <div class="legend">
+          <span><i class="sw" style="background:var(--teal)"></i>Recovery</span>
+          <span><i class="sw" style="background:var(--blue)"></i>Alvás %</span>
+          <span><i class="sw" style="background:var(--amber)"></i>Strain</span>
+        </div>
+      </div>
+
+      <div class="card span-4">
+        <div class="card-title">Recovery zónák megoszlása</div>
+        <div class="zones-bar" id="zonesBar"></div>
+        <div class="zones-legend">
+          <div><span class="n good" id="zoneGreenN">—</span>Zöld<br>(67+)</div>
+          <div><span class="n warn" id="zoneYellowN">—</span>Sárga<br>(34–66)</div>
+          <div><span class="n bad" id="zoneRedN">—</span>Piros<br>(0–33)</div>
+        </div>
+        <div style="margin-top:18px; border-top:1px solid var(--line); padding-top:14px;">
+          <div class="ring-stat"><span class="k">Átlag recovery</span><span class="v mono" id="avgRecovery">—</span></div>
+          <div class="ring-stat" style="margin-top:8px"><span class="k">Átlag HRV</span><span class="v mono" id="avgHrv">—</span></div>
+          <div class="ring-stat" style="margin-top:8px"><span class="k">Átlag nyugalmi pulzus</span><span class="v mono" id="avgRhr">—</span></div>
+        </div>
+      </div>
+
+      <div class="card span-6">
+        <div class="card-title">HRV &amp; Nyugalmi pulzus</div>
+        <div class="chart-box" id="chartHr"></div>
+        <div class="legend">
+          <span><i class="sw" style="background:var(--violet)"></i>HRV (ms)</span>
+          <span><i class="sw" style="background:var(--pink)"></i>Resting HR (bpm)</span>
+        </div>
+      </div>
+
+      <div class="card span-6">
+        <div class="card-title">Alvás időtartam vs. igény</div>
+        <div class="chart-box" id="chartSleep"></div>
+        <div class="legend">
+          <span><i class="sw" style="background:var(--blue)"></i>Alvás (h)</span>
+          <span><i class="sw" style="background:var(--muted)"></i>Igény (h)</span>
+        </div>
+      </div>
+
+      <div class="card span-12">
+        <div class="card-title">Napi adatok<span class="hint" id="tableHint">kattints a fejlécre a rendezéshez</span></div>
+        <div class="table-scroll">
+          <table id="dailyTable">
+            <thead>
+              <tr>
+                <th data-key="date">Dátum</th>
+                <th data-key="recovery">Recovery</th>
+                <th data-key="sleepPerformance">Alvás %</th>
+                <th data-key="sleepDuration">Alvás h</th>
+                <th data-key="sleepNeed">Igény h</th>
+                <th data-key="strain">Strain</th>
+                <th data-key="hrv">HRV</th>
+                <th data-key="restingHr">RHR</th>
+                <th data-key="calories">Kalória</th>
+              </tr>
+            </thead>
+            <tbody id="dailyRows"></tbody>
+          </table>
+        </div>
+        <div class="status-line" id="dailyStatus"></div>
+      </div>
+
+    </div>
+  </section>
+
+  <section id="viewWorkouts" style="display:none">
+    <div class="grid">
+
+      <div class="card span-3">
+        <div class="card-title">Edzések száma</div>
+        <div class="kpi-value mono" id="wkCount">—</div>
+        <div class="kpi-delta" id="wkCountSub">—</div>
+      </div>
+      <div class="card span-3">
+        <div class="card-title">Összes edzés strain</div>
+        <div class="kpi-value mono" id="wkStrainTotal">—</div>
+        <div class="kpi-delta">átlag <span id="wkStrainAvg">—</span></div>
+      </div>
+      <div class="card span-3">
+        <div class="card-title">Összes idő</div>
+        <div class="kpi-value mono" id="wkDuration">—</div>
+        <div class="kpi-delta">átlag <span id="wkDurationAvg">—</span> / edzés</div>
+      </div>
+      <div class="card span-3">
+        <div class="card-title">Összes kalória</div>
+        <div class="kpi-value mono" id="wkCalories">—</div>
+        <div class="kpi-delta">átlag <span id="wkCaloriesAvg">—</span> / edzés</div>
+      </div>
+
+      <div class="card span-7">
+        <div class="card-title">Edzés strain az időszakban</div>
+        <div class="chart-box tall" id="chartWorkoutStrain"></div>
+        <div class="legend"><span><i class="sw" style="background:var(--amber)"></i>Strain / edzés</span></div>
+      </div>
+
+      <div class="card span-5">
+        <div class="card-title">Sportágak megoszlása</div>
+        <div id="sportBreakdown"></div>
+      </div>
+
+      <div class="card span-12">
+        <div class="card-title">Edzés napló<span class="hint">kattints a fejlécre a rendezéshez</span></div>
+        <div class="table-scroll">
+          <table id="workoutTable">
+            <thead>
+              <tr>
+                <th data-key="date">Dátum</th>
+                <th data-key="sport">Sport</th>
+                <th data-key="duration">Időtartam</th>
+                <th data-key="strain">Strain</th>
+                <th data-key="avgHr">Átlag pulzus</th>
+                <th data-key="maxHr">Max pulzus</th>
+                <th data-key="calories">Kalória</th>
+              </tr>
+            </thead>
+            <tbody id="workoutRows"></tbody>
+          </table>
+        </div>
+        <div class="status-line" id="workoutStatus"></div>
+      </div>
+
+    </div>
+  </section>
+
+  <footer>WHOOP → Notion → GitHub Pages &middot; automatikus napi szinkron</footer>
+</div>
+
+<script>
+const state = {
+  daily: [], workouts: [],
+  rangeMode: '90', customFrom: null, customTo: null,
+  sport: 'all', view: 'overview',
+  sortDaily: { key: 'date', dir: 'desc' },
+  sortWorkout: { key: 'date', dir: 'desc' },
+};
+
+function isNum(v){ return typeof v === 'number' && Number.isFinite(v); }
+function toNum(v){ if(v === null || v === undefined || v === '') return null; const n = Number(v); return Number.isFinite(n) ? n : null; }
+function fmt(v, d=0, suffix=''){ return isNum(v) ? v.toFixed(d) + suffix : '—'; }
+function avg(arr){ const v = arr.filter(isNum); return v.length ? v.reduce((a,b)=>a+b,0)/v.length : null; }
+function sum(arr){ const v = arr.filter(isNum); return v.length ? v.reduce((a,b)=>a+b,0) : null; }
+function fmtDate(s){ const d = new Date(s); return Number.isNaN(d.getTime()) ? s : d.toLocaleDateString('hu-HU', {year:'numeric', month:'2-digit', day:'2-digit'}); }
+function fmtDateShort(s){ const d = new Date(s); return Number.isNaN(d.getTime()) ? s : d.toLocaleDateString('hu-HU', {month:'short', day:'numeric'}); }
+function recoveryClass(v){ if(!isNum(v)) return ''; if(v>=67) return 'good'; if(v>=34) return 'warn'; return 'bad'; }
+function minutesToHM(mins){ if(!isNum(mins)) return '—'; const h = Math.floor(mins/60); const m = Math.round(mins%60); return h>0 ? `${h}ó ${m}p` : `${m}p`; }
+
+function lastValid(data, key){
+  for(let i=data.length-1;i>=0;i--){ const v = toNum(data[i][key]); if(isNum(v)) return {index:i, value:v}; }
+  return null;
+}
+function prevValid(data, key, fromIndex){
+  for(let i=fromIndex-1;i>=0;i--){ const v = toNum(data[i][key]); if(isNum(v)) return {index:i, value:v}; }
+  return null;
+}
+function deltaHtml(current, previous, digits=0, suffix=''){
+  if(!isNum(current) || !isNum(previous)) return { text:'Nincs korábbi adat', cls:'' };
+  const diff = current - previous;
+  const sign = diff > 0 ? '+' : '';
+  return { text: `${sign}${diff.toFixed(digits)}${suffix} előző naphoz képest`, cls: diff > 0 ? 'up' : (diff < 0 ? 'down' : '') };
+}
+
+function daysAgo(n){ const d = new Date(); d.setHours(0,0,0,0); d.setDate(d.getDate()-n); return d; }
+
+function getDateBounds(){
+  if(state.rangeMode === 'all') return null;
+  if(state.rangeMode === 'custom'){
+    if(!state.customFrom || !state.customTo) return null;
+    return { from: new Date(state.customFrom), to: new Date(state.customTo) };
+  }
+  const n = parseInt(state.rangeMode, 10);
+  return { from: daysAgo(n-1), to: new Date(8640000000000000) };
+}
+
+function filteredDaily(){
+  const bounds = getDateBounds();
+  if(!bounds) return state.daily;
+  return state.daily.filter(d => { const dt = new Date(d.date); return dt >= bounds.from && dt <= bounds.to; });
+}
+
+function filteredWorkouts(){
+  const bounds = getDateBounds();
+  let list = state.workouts;
+  if(bounds) list = list.filter(w => { const dt = new Date(w.date); return dt >= bounds.from && dt <= bounds.to; });
+  if(state.sport !== 'all') list = list.filter(w => w.sport === state.sport);
+  return list;
+}
+
+function buildLineChart(containerId, labels, series, opts={}){
+  const container = document.getElementById(containerId);
+  const width = 1000, height = opts.height || 280;
+  const pad = {top:16, right:16, bottom:26, left:38};
+  const allValues = [];
+  series.forEach(s => s.data.forEach(v => { if(isNum(v)) allValues.push(v); }));
+  if(!allValues.length){
+    container.innerHTML = '<div class="empty-msg">Nincs megjeleníthető adat ebben az időszakban.</div>';
+    return;
+  }
+  let min = Math.min(...allValues), max = Math.max(...allValues);
+  if(min === max){ min -= 1; max += 1; }
+  const padAmt = (max - min) * 0.08;
+  min -= padAmt; max += padAmt;
+  const plotW = width - pad.left - pad.right;
+  const plotH = height - pad.top - pad.bottom;
+  const n = labels.length;
+  function x(i){ return n <= 1 ? pad.left + plotW/2 : pad.left + (i/(n-1)) * plotW; }
+  function y(v){ return pad.top + (1 - (v - min)/(max - min)) * plotH; }
+
+  let svg = `<svg viewBox="0 0 ${width} ${height}" preserveAspectRatio="none">`;
+  for(let i=0;i<4;i++){
+    const gy = pad.top + (plotH/3)*i;
+    const val = max - (i/3)*(max-min);
+    svg += `<line x1="${pad.left}" y1="${gy}" x2="${width-pad.right}" y2="${gy}" class="grid-line"/>`;
+    svg += `<text x="${pad.left-8}" y="${gy+3}" text-anchor="end" class="axis-label">${val.toFixed(0)}</text>`;
+  }
+  const labelStep = Math.max(1, Math.floor(n/7));
+  for(let i=0;i<n;i+=labelStep){
+    svg += `<text x="${x(i)}" y="${height-6}" text-anchor="middle" class="axis-label">${labels[i]}</text>`;
+  }
+  series.forEach(s => {
+    let d = ''; let started = false;
+    s.data.forEach((v,i) => {
+      if(isNum(v)){ const px=x(i), py=y(v); d += (!started ? `M ${px} ${py} ` : `L ${px} ${py} `); started = true; }
+      else started = false;
+    });
+    if(s.fill){
+      let area = d + ` L ${x(n-1)} ${pad.top+plotH} L ${x(0)} ${pad.top+plotH} Z`;
+      svg += `<path d="${area}" fill="${s.color}" opacity="0.08" stroke="none"/>`;
+    }
+    svg += `<path d="${d}" fill="none" stroke="${s.color}" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>`;
+  });
+  svg += `</svg>`;
+  container.innerHTML = svg;
+}
+
+function buildSparkline(containerId, data, color){
+  const container = document.getElementById(containerId);
+  const valid = data.filter(isNum);
+  if(!valid.length){ container.innerHTML=''; return; }
+  const width=200, height=34;
+  let min=Math.min(...valid), max=Math.max(...valid);
+  if(min===max){min-=1;max+=1;}
+  const n = data.length;
+  function x(i){ return n<=1 ? width/2 : (i/(n-1))*width; }
+  function y(v){ return height - ((v-min)/(max-min))*height; }
+  let d=''; let started=false;
+  data.forEach((v,i)=>{
+    if(isNum(v)){ const px=x(i),py=y(v); d += (!started?`M ${px} ${py} `:`L ${px} ${py} `); started=true; }
+    else started=false;
+  });
+  container.innerHTML = `<svg viewBox="0 0 ${width} ${height}" preserveAspectRatio="none"><path d="${d}" fill="none" stroke="${color}" stroke-width="2"/></svg>`;
+}
+
+function buildBarChart(containerId, labels, values, color){
+  const container = document.getElementById(containerId);
+  const valid = values.filter(isNum);
+  if(!valid.length){ container.innerHTML = '<div class="empty-msg">Nincs edzés adat ebben az időszakban.</div>'; return; }
+  const width=1000, height=280;
+  const pad = {top:16, right:16, bottom:26, left:38};
+  let max = Math.max(...valid) * 1.1;
+  const plotW = width - pad.left - pad.right;
+  const plotH = height - pad.top - pad.bottom;
+  const n = values.length;
+  const bw = Math.max(2, plotW/n * 0.65);
+  function x(i){ return n<=1 ? pad.left + plotW/2 : pad.left + (i/(n-1)) * (plotW - bw); }
+  function y(v){ return pad.top + (1 - v/max) * plotH; }
+
+  let svg = `<svg viewBox="0 0 ${width} ${height}" preserveAspectRatio="none">`;
+  for(let i=0;i<4;i++){
+    const gy = pad.top + (plotH/3)*i;
+    const val = max - (i/3)*max;
+    svg += `<line x1="${pad.left}" y1="${gy}" x2="${width-pad.right}" y2="${gy}" class="grid-line"/>`;
+    svg += `<text x="${pad.left-8}" y="${gy+3}" text-anchor="end" class="axis-label">${val.toFixed(0)}</text>`;
+  }
+  const labelStep = Math.max(1, Math.floor(n/7));
+  values.forEach((v,i) => {
+    if(!isNum(v)) return;
+    const bx = x(i), by = y(v);
+    svg += `<rect x="${bx}" y="${by}" width="${bw}" height="${pad.top+plotH-by}" fill="${color}" opacity="0.85" rx="2"/>`;
+    if(i % labelStep === 0){
+      svg += `<text x="${bx+bw/2}" y="${height-6}" text-anchor="middle" class="axis-label">${labels[i]}</text>`;
+    }
+  });
+  svg += `</svg>`;
+  container.innerHTML = svg;
+}
+
+function renderOverview(){
+  const data = filteredDaily().slice().sort((a,b)=> new Date(a.date)-new Date(b.date));
+  const statusEl = document.getElementById('dailyStatus');
+
+  if(!data.length){
+    document.getElementById('chartMain').innerHTML = '<div class="empty-msg">Nincs adat ebben az időszakban.</div>';
+    document.getElementById('chartHr').innerHTML = '<div class="empty-msg">Nincs adat.</div>';
+    document.getElementById('chartSleep').innerHTML = '<div class="empty-msg">Nincs adat.</div>';
+    document.getElementById('dailyRows').innerHTML = '';
+    statusEl.textContent = 'Nincs megjeleníthető nap ebben az időszakban.';
+    ['kpiStrain','kpiSleepH','kpiCalories','kpiDayCount','ringValue','ringHrv','ringRhr','ringSleep','ringSpo2','avgRecovery','avgHrv','avgRhr'].forEach(id=>{
+      const el = document.getElementById(id); if(el) el.textContent = '—';
+    });
+    return;
+  }
+
+  const labels = data.map(d => fmtDateShort(d.date));
+  const recovery = data.map(d => toNum(d.recovery));
+  const sleepPerf = data.map(d => toNum(d.sleepPerformance));
+  const strain = data.map(d => toNum(d.strain));
+  const hrv = data.map(d => toNum(d.hrv));
+  const rhr = data.map(d => toNum(d.restingHr));
+  const sleepDur = data.map(d => toNum(d.sleepDuration));
+  const sleepNeed = data.map(d => toNum(d.sleepNeed));
+  const calories = data.map(d => toNum(d.calories));
+
+  const latestRecovery = lastValid(data, 'recovery');
+  const latestHrv = lastValid(data, 'hrv');
+  const latestRhr = lastValid(data, 'restingHr');
+  const latestSleep = lastValid(data, 'sleepPerformance');
+  const latestSpo2 = lastValid(data, 'spo2');
+  const latestStrain = lastValid(data, 'strain');
+  const latestSleepH = lastValid(data, 'sleepDuration');
+  const latestCal = lastValid(data, 'calories');
+
+  const ringPct = latestRecovery ? Math.max(0, Math.min(100, latestRecovery.value)) : 0;
+  const circumference = 352;
+  const offset = circumference - (ringPct/100)*circumference;
+  const ringEl = document.getElementById('recoveryRingFg');
+  ringEl.setAttribute('stroke-dashoffset', offset);
+  ringEl.setAttribute('stroke', ringPct>=67 ? 'var(--green-zone)' : ringPct>=34 ? 'var(--yellow-zone)' : 'var(--red-zone)');
+  document.getElementById('ringValue').textContent = latestRecovery ? fmt(latestRecovery.value) : '—';
+  document.getElementById('ringValue').className = 'ring-value mono ' + recoveryClass(latestRecovery ? latestRecovery.value : null);
+  document.getElementById('recoveryDateHint').textContent = latestRecovery ? fmtDate(data[latestRecovery.index].date) : '';
+  document.getElementById('ringHrv').textContent = latestHrv ? fmt(latestHrv.value,1,' ms') : '—';
+  document.getElementById('ringRhr').textContent = latestRhr ? fmt(latestRhr.value,0,' bpm') : '—';
+  document.getElementById('ringSleep').textContent = latestSleep ? fmt(latestSleep.value,0,'%') : '—';
+  document.getElementById('ringSpo2').textContent = latestSpo2 ? fmt(latestSpo2.value,1,'%') : '—';
+
+  const prevStrain = latestStrain ? prevValid(data,'strain',latestStrain.index) : null;
+  document.getElementById('kpiStrain').textContent = latestStrain ? fmt(latestStrain.value,1) : '—';
+  const dStrain = deltaHtml(latestStrain?latestStrain.value:null, prevStrain?prevStrain.value:null,1);
+  document.getElementById('kpiStrainDelta').textContent = dStrain.text;
+  document.getElementById('kpiStrainDelta').className = 'kpi-delta ' + dStrain.cls;
+  buildSparkline('sparkStrain', strain, 'var(--amber)');
+
+  const prevSleepH = latestSleepH ? prevValid(data,'sleepDuration',latestSleepH.index) : null;
+  document.getElementById('kpiSleepH').textContent = latestSleepH ? fmt(latestSleepH.value,1,'h') : '—';
+  const dSleepH = deltaHtml(latestSleepH?latestSleepH.value:null, prevSleepH?prevSleepH.value:null,1,'h');
+  document.getElementById('kpiSleepHDelta').textContent = dSleepH.text;
+  document.getElementById('kpiSleepHDelta').className = 'kpi-delta ' + dSleepH.cls;
+  buildSparkline('sparkSleepH', sleepDur, 'var(--blue)');
+
+  const prevCal = latestCal ? prevValid(data,'calories',latestCal.index) : null;
+  document.getElementById('kpiCalories').textContent = latestCal ? fmt(latestCal.value,0) : '—';
+  const dCal = deltaHtml(latestCal?latestCal.value:null, prevCal?prevCal.value:null,0);
+  document.getElementById('kpiCaloriesDelta').textContent = dCal.text;
+  document.getElementById('kpiCaloriesDelta').className = 'kpi-delta ' + dCal.cls;
+  buildSparkline('sparkCalories', calories, 'var(--coral)');
+
+  document.getElementById('kpiDayCount').textContent = data.length;
+  document.getElementById('kpiDayCountSub').textContent = `${fmtDate(data[0].date)} – ${fmtDate(data[data.length-1].date)}`;
+
+  document.getElementById('avgRecovery').textContent = fmt(avg(recovery),1);
+  document.getElementById('avgHrv').textContent = fmt(avg(hrv),1,' ms');
+  document.getElementById('avgRhr').textContent = fmt(avg(rhr),1,' bpm');
+
+  const recValid = recovery.filter(isNum);
+  const green = recValid.filter(v=>v>=67).length;
+  const yellow = recValid.filter(v=>v>=34 && v<67).length;
+  const red = recValid.filter(v=>v<34).length;
+  const total = recValid.length || 1;
+  document.getElementById('zonesBar').innerHTML = `
+    <div style="width:${green/total*100}%; background:var(--green-zone)"></div>
+    <div style="width:${yellow/total*100}%; background:var(--yellow-zone)"></div>
+    <div style="width:${red/total*100}%; background:var(--red-zone)"></div>
+  `;
+  document.getElementById('zoneGreenN').textContent = green;
+  document.getElementById('zoneYellowN').textContent = yellow;
+  document.getElementById('zoneRedN').textContent = red;
+
+  buildLineChart('chartMain', labels, [
+    {color:'#2de3c6', data:recovery, fill:true},
+    {color:'#59a6ff', data:sleepPerf},
+    {color:'#ffb648', data:strain},
+  ], {height:320});
+  buildLineChart('chartHr', labels, [
+    {color:'#9b8cff', data:hrv},
+    {color:'#ff7bb0', data:rhr},
+  ]);
+  buildLineChart('chartSleep', labels, [
+    {color:'#59a6ff', data:sleepDur, fill:true},
+    {color:'#7c9499', data:sleepNeed},
+  ]);
+
+  renderDailyTable(data);
+  statusEl.textContent = `${data.length} nap megjelenítve · ${fmtDate(data[0].date)} – ${fmtDate(data[data.length-1].date)}`;
+}
+
+function renderDailyTable(data){
+  const sorted = data.slice().sort((a,b) => {
+    const k = state.sortDaily.key;
+    let av = k==='date' ? new Date(a[k]) : toNum(a[k]);
+    let bv = k==='date' ? new Date(b[k]) : toNum(b[k]);
+    if(av===null) av = -Infinity; if(bv===null) bv = -Infinity;
+    return state.sortDaily.dir==='asc' ? av-bv : bv-av;
+  });
+  const rows = sorted.slice(0, 60);
+  document.getElementById('dailyRows').innerHTML = rows.map(d => `
+    <tr>
+      <td class="mono">${fmtDate(d.date)}</td>
+      <td class="mono ${recoveryClass(toNum(d.recovery))}">${fmt(toNum(d.recovery))}</td>
+      <td class="mono">${fmt(toNum(d.sleepPerformance),0,'%')}</td>
+      <td class="mono">${fmt(toNum(d.sleepDuration),2)}</td>
+      <td class="mono">${fmt(toNum(d.sleepNeed),2)}</td>
+      <td class="mono">${fmt(toNum(d.strain),1)}</td>
+      <td class="mono">${fmt(toNum(d.hrv),1)}</td>
+      <td class="mono">${fmt(toNum(d.restingHr),0)}</td>
+      <td class="mono">${fmt(toNum(d.calories),0)}</td>
+    </tr>
+  `).join('');
+  document.querySelectorAll('#dailyTable th').forEach(th => {
+    th.classList.toggle('sorted', th.dataset.key === state.sortDaily.key);
+    th.classList.toggle('asc', th.dataset.key === state.sortDaily.key && state.sortDaily.dir === 'asc');
+  });
+  document.getElementById('tableHint').textContent = sorted.length > 60 ? `első 60 / ${sorted.length} nap` : 'kattints a fejlécre a rendezéshez';
+}
+
+function renderWorkouts(){
+  const data = filteredWorkouts().slice().sort((a,b)=> new Date(a.date)-new Date(b.date));
+  const statusEl = document.getElementById('workoutStatus');
+
+  if(!data.length){
+    document.getElementById('chartWorkoutStrain').innerHTML = '<div class="empty-msg">Nincs edzés ebben az időszakban / sportágban.</div>';
+    document.getElementById('sportBreakdown').innerHTML = '<div class="empty-msg">Nincs adat.</div>';
+    document.getElementById('workoutRows').innerHTML = '';
+    statusEl.textContent = 'Nincs edzés a szűrt tartományban.';
+    ['wkCount','wkStrainTotal','wkDuration','wkCalories'].forEach(id => document.getElementById(id).textContent='—');
+    return;
+  }
+
+  const labels = data.map(d => fmtDateShort(d.date));
+  const strain = data.map(d => toNum(d.strain));
+  const durationTotal = sum(data.map(d=>toNum(d.duration)));
+  const calTotal = sum(data.map(d=>toNum(d.calories)));
+  const strainTotal = sum(strain);
+
+  document.getElementById('wkCount').textContent = data.length;
+  document.getElementById('wkCountSub').textContent = `${fmtDate(data[0].date)} – ${fmtDate(data[data.length-1].date)}`;
+  document.getElementById('wkStrainTotal').textContent = fmt(strainTotal,1);
+  document.getElementById('wkStrainAvg').textContent = fmt(avg(strain),1);
+  document.getElementById('wkDuration').textContent = minutesToHM(durationTotal);
+  document.getElementById('wkDurationAvg').textContent = minutesToHM(durationTotal/data.length);
+  document.getElementById('wkCalories').textContent = fmt(calTotal,0);
+  document.getElementById('wkCaloriesAvg').textContent = fmt(calTotal/data.length,0);
+
+  buildBarChart('chartWorkoutStrain', labels, strain, '#ffb648');
+
+  const bySport = {};
+  data.forEach(w => {
+    const s = w.sport || 'Ismeretlen';
+    if(!bySport[s]) bySport[s] = { count:0, strain:0, duration:0, calories:0 };
+    bySport[s].count++;
+    bySport[s].strain += toNum(w.strain) || 0;
+    bySport[s].duration += toNum(w.duration) || 0;
+    bySport[s].calories += toNum(w.calories) || 0;
+  });
+  const sportEntries = Object.entries(bySport).sort((a,b) => b[1].count - a[1].count);
+  const maxCount = Math.max(...sportEntries.map(e => e[1].count));
+  const palette = ['#2de3c6','#59a6ff','#9b8cff','#ff7bb0','#ffb648','#ff6b5e','#7c9499'];
+  document.getElementById('sportBreakdown').innerHTML = sportEntries.map(([sport, s], i) => `
+    <div style="margin-bottom:12px">
+      <div style="display:flex; justify-content:space-between; font-size:12.5px; margin-bottom:5px;">
+        <span>${sport}</span>
+        <span class="mono" style="color:var(--muted)">${s.count} &middot; ${minutesToHM(s.duration)}</span>
+      </div>
+      <div style="height:8px; border-radius:6px; background:rgba(255,255,255,.05); overflow:hidden;">
+        <div style="width:${(s.count/maxCount*100)}%; height:100%; background:${palette[i % palette.length]}"></div>
+      </div>
+    </div>
+  `).join('');
+
+  renderWorkoutTable(data);
+  statusEl.textContent = `${data.length} edzés megjelenítve · ${fmtDate(data[0].date)} – ${fmtDate(data[data.length-1].date)}`;
+}
+
+function renderWorkoutTable(data){
+  const sorted = data.slice().sort((a,b) => {
+    const k = state.sortWorkout.key;
+    let av = k==='date' ? new Date(a[k]) : (k==='sport' ? a[k] : toNum(a[k]));
+    let bv = k==='date' ? new Date(b[k]) : (k==='sport' ? b[k] : toNum(b[k]));
+    if(k==='sport'){ av = av||''; bv = bv||''; return state.sortWorkout.dir==='asc' ? av.localeCompare(bv) : bv.localeCompare(av); }
+    if(av===null) av=-Infinity; if(bv===null) bv=-Infinity;
+    return state.sortWorkout.dir==='asc' ? av-bv : bv-av;
+  });
+  const rows = sorted.slice(0, 60);
+  document.getElementById('workoutRows').innerHTML = rows.map(w => `
+    <tr>
+      <td class="mono">${fmtDate(w.date)}</td>
+      <td><span class="badge">${w.sport || 'Ismeretlen'}</span></td>
+      <td class="mono">${minutesToHM(toNum(w.duration))}</td>
+      <td class="mono">${fmt(toNum(w.strain),1)}</td>
+      <td class="mono">${fmt(toNum(w.avgHr),0)}</td>
+      <td class="mono">${fmt(toNum(w.maxHr),0)}</td>
+      <td class="mono">${fmt(toNum(w.calories),0)}</td>
+    </tr>
+  `).join('');
+  document.querySelectorAll('#workoutTable th').forEach(th => {
+    th.classList.toggle('sorted', th.dataset.key === state.sortWorkout.key);
+    th.classList.toggle('asc', th.dataset.key === state.sortWorkout.key && state.sortWorkout.dir === 'asc');
+  });
+}
+
+function renderAll(){
+  if(state.view === 'overview') renderOverview();
+  else renderWorkouts();
+
+  const bounds = getDateBounds();
+  document.getElementById('rangeLabelSub').textContent = bounds
+    ? `${fmtDate(bounds.from.toISOString().slice(0,10))} – ${bounds.to.getFullYear() > 3000 ? 'ma' : fmtDate(bounds.to.toISOString().slice(0,10))}`
+    : 'teljes időszak';
+}
+
+document.querySelectorAll('.chip[data-range]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.chip[data-range]').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    state.rangeMode = btn.dataset.range;
+    document.getElementById('customRange').classList.toggle('show', state.rangeMode === 'custom');
+    if(state.rangeMode === 'custom' && state.customFrom && state.customTo) renderAll();
+    else if(state.rangeMode !== 'custom') renderAll();
+  });
+});
+
+document.getElementById('dateFrom').addEventListener('change', e => { state.customFrom = e.target.value; if(state.customFrom && state.customTo) renderAll(); });
+document.getElementById('dateTo').addEventListener('change', e => { state.customTo = e.target.value; if(state.customFrom && state.customTo) renderAll(); });
+
+document.getElementById('sportFilter').addEventListener('change', e => { state.sport = e.target.value; renderAll(); });
+
+document.querySelectorAll('.chip[data-view]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.chip[data-view]').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    state.view = btn.dataset.view;
+    document.getElementById('viewOverview').style.display = state.view === 'overview' ? '' : 'none';
+    document.getElementById('viewWorkouts').style.display = state.view === 'workouts' ? '' : 'none';
+    renderAll();
+  });
+});
+
+document.querySelectorAll('#dailyTable th').forEach(th => {
+  th.addEventListener('click', () => {
+    const key = th.dataset.key;
+    if(state.sortDaily.key === key) state.sortDaily.dir = state.sortDaily.dir === 'asc' ? 'desc' : 'asc';
+    else { state.sortDaily.key = key; state.sortDaily.dir = 'desc'; }
+    renderOverview();
+  });
+});
+document.querySelectorAll('#workoutTable th').forEach(th => {
+  th.addEventListener('click', () => {
+    const key = th.dataset.key;
+    if(state.sortWorkout.key === key) state.sortWorkout.dir = state.sortWorkout.dir === 'asc' ? 'desc' : 'asc';
+    else { state.sortWorkout.key = key; state.sortWorkout.dir = 'desc'; }
+    renderWorkouts();
+  });
+});
+
+async function load(){
+  const pill = document.getElementById('statusPill');
+  try{
+    const res = await fetch('./data.json?t=' + Date.now());
+    if(!res.ok) throw new Error('HTTP ' + res.status);
+    const raw = await res.json();
+    const daily = Array.isArray(raw) ? raw : (Array.isArray(raw?.daily) ? raw.daily : []);
+    const workouts = Array.isArray(raw?.workouts) ? raw.workouts : [];
+
+    if(!daily.length){
+      pill.textContent = 'A data.json üres vagy hibás formátumú.';
+      return;
     }
 
-    function toNumberOrNull(v){
-      if(v === null || v === undefined || v === "") return null;
-      const n = Number(v);
-      return Number.isFinite(n) ? n : null;
-    }
+    state.daily = daily.slice().sort((a,b) => new Date(a.date) - new Date(b.date));
+    state.workouts = workouts.slice().sort((a,b) => new Date(a.date) - new Date(b.date));
 
-    function fmt(v, digits=0, suffix=""){
-      return isValidNumber(v) ? v.toFixed(digits) + suffix : "—";
-    }
+    const sports = Array.from(new Set(state.workouts.map(w => w.sport).filter(Boolean))).sort();
+    const sel = document.getElementById('sportFilter');
+    sports.forEach(s => {
+      const opt = document.createElement('option');
+      opt.value = s; opt.textContent = s;
+      sel.appendChild(opt);
+    });
 
-    function avg(values){
-      const valid = values.filter(isValidNumber);
-      if(!valid.length) return null;
-      return valid.reduce((a,b)=>a+b,0)/valid.length;
-    }
+    const minDate = state.daily[0].date;
+    const maxDate = state.daily[state.daily.length-1].date;
+    document.getElementById('dateFrom').min = minDate;
+    document.getElementById('dateFrom').max = maxDate;
+    document.getElementById('dateTo').min = minDate;
+    document.getElementById('dateTo').max = maxDate;
 
-    function fmtDate(dateStr){
-      const d = new Date(dateStr);
-      return Number.isNaN(d.getTime()) ? dateStr : d.toLocaleDateString("hu-HU");
-    }
+    pill.textContent = `${state.daily.length} nap · ${state.workouts.length} edzés betöltve`;
+    renderAll();
+  }catch(err){
+    console.error(err);
+    pill.textContent = 'Hiba a betöltéskor: ' + err.message;
+  }
+}
 
-    function recoveryClass(v){
-      if(!isValidNumber(v)) return "";
-      if(v >= 67) return "good";
-      if(v >= 34) return "warn";
-      return "bad";
-    }
-
-    function lastValidEntry(data, key){
-      for(let i = data.length - 1; i >= 0; i--){
-        const value = toNumberOrNull(data[i][key]);
-        if(isValidNumber(value)) return { index:i, value, row:data[i] };
-      }
-      return null;
-    }
-
-    function prevValidEntry(data, key, fromIndex){
-      for(let i = fromIndex - 1; i >= 0; i--){
-        const value = toNumberOrNull(data[i][key]);
-        if(isValidNumber(value)) return { index:i, value, row:data[i] };
-      }
-      return null;
-    }
-
-    function deltaText(current, previous, digits=0, suffix=""){
-      if(!isValidNumber(current) || !isValidNumber(previous)) return "Nincs összehasonlítható előző érték";
-      const diff = current - previous;
-      const sign = diff > 0 ? "+" : "";
-      return sign + diff.toFixed(digits) + suffix + " előző naphoz képest";
-    }
-
-    function buildLineChart(containerId, labels, series){
-      const container = document.getElementById(containerId);
-      const width = 900;
-      const height = 320;
-      const pad = {top:20,right:20,bottom:30,left:36};
-
-      const allValues = [];
-      series.forEach(s => s.data.forEach(v => { if(isValidNumber(v)) allValues.push(v); }));
-
-      if(!allValues.length){
-        container.innerHTML = '<div style="padding:24px;color:#a8b3d1">Nincs megjeleníthető adat.</div>';
-        return;
-      }
-
-      let min = Math.min(...allValues);
-      let max = Math.max(...allValues);
-      if(min === max){ min -= 1; max += 1; }
-
-      const plotW = width - pad.left - pad.right;
-      const plotH = height - pad.top - pad.bottom;
-
-      function x(i){
-        if(labels.length <= 1) return pad.left + plotW / 2;
-        return pad.left + (i / (labels.length - 1)) * plotW;
-      }
-
-      function y(v){
-        return pad.top + (1 - (v - min) / (max - min)) * plotH;
-      }
-
-      let svg = `
-        <svg viewBox="0 0 ${width} ${height}" preserveAspectRatio="none" aria-label="chart">
-          <rect x="0" y="0" width="${width}" height="${height}" fill="transparent"></rect>
-      `;
-
-      for(let i=0;i<5;i++){
-        const gy = pad.top + (plotH/4)*i;
-        svg += `<line x1="${pad.left}" y1="${gy}" x2="${width-pad.right}" y2="${gy}" stroke="rgba(255,255,255,.08)" stroke-width="1"/>`;
-      }
-
-      series.forEach(s => {
-        let d = "";
-        let started = false;
-        s.data.forEach((v,i) => {
-          if(isValidNumber(v)){
-            const px = x(i);
-            const py = y(v);
-            if(!started){
-              d += `M ${px} ${py} `;
-              started = true;
-            } else {
-              d += `L ${px} ${py} `;
-            }
-          } else {
-            started = false;
-          }
-        });
-        svg += `<path d="${d}" fill="none" stroke="${s.color}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>`;
-      });
-
-      svg += `</svg>`;
-      container.innerHTML = svg;
-    }
-
-    async function load(){
-      const statusEl = document.getElementById("status");
-
-      try{
-        const res = await fetch("./data.json?t=" + Date.now());
-        if(!res.ok) throw new Error("HTTP " + res.status);
-
-        const raw = await res.json();
-        const data = Array.isArray(raw) ? raw.slice() : (Array.isArray(raw?.daily) ? raw.daily.slice() : []);
-        data.sort((a,b)=>new Date(a.date) - new Date(b.date));
-
-        if(!data.length){
-          statusEl.textContent = "A data.json üres vagy nem tömb.";
-          return;
-        }
-
-        const labels = data.map(d => fmtDate(d.date));
-        const recovery = data.map(d => toNumberOrNull(d.recovery));
-        const sleepPerf = data.map(d => toNumberOrNull(d.sleepPerformance));
-        const strain = data.map(d => toNumberOrNull(d.strain));
-        const hrv = data.map(d => toNumberOrNull(d.hrv));
-        const rhr = data.map(d => toNumberOrNull(d.restingHr));
-        const sleepDuration = data.map(d => toNumberOrNull(d.sleepDuration));
-        const sleepNeed = data.map(d => toNumberOrNull(d.sleepNeed));
-        const calories = data.map(d => toNumberOrNull(d.calories));
-
-        const latestRecovery = lastValidEntry(data, "recovery");
-        const latestSleep = lastValidEntry(data, "sleepPerformance");
-        const latestStrain = lastValidEntry(data, "strain");
-        const latestHrv = lastValidEntry(data, "hrv");
-
-        const prevRecovery = latestRecovery ? prevValidEntry(data, "recovery", latestRecovery.index) : null;
-        const prevSleep = latestSleep ? prevValidEntry(data, "sleepPerformance", latestSleep.index) : null;
-        const prevStrain = latestStrain ? prevValidEntry(data, "strain", latestStrain.index) : null;
-        const prevHrv = latestHrv ? prevValidEntry(data, "hrv", latestHrv.index) : null;
-
-        document.getElementById("kpiRecovery").textContent = latestRecovery ? fmt(latestRecovery.value) : "—";
-        document.getElementById("kpiRecovery").className = "value " + (latestRecovery ? recoveryClass(latestRecovery.value) : "");
-        document.getElementById("kpiRecoveryDelta").textContent = latestRecovery ? deltaText(latestRecovery.value, prevRecovery ? prevRecovery.value : null) : "Nincs adat";
-
-        document.getElementById("kpiSleep").textContent = latestSleep ? fmt(latestSleep.value,0,"%") : "—";
-        document.getElementById("kpiSleepDelta").textContent = latestSleep ? deltaText(latestSleep.value, prevSleep ? prevSleep.value : null, 0, "%") : "Nincs adat";
-
-        document.getElementById("kpiStrain").textContent = latestStrain ? fmt(latestStrain.value,1) : "—";
-        document.getElementById("kpiStrainDelta").textContent = latestStrain ? deltaText(latestStrain.value, prevStrain ? prevStrain.value : null, 1) : "Nincs adat";
-
-        document.getElementById("kpiHrv").textContent = latestHrv ? fmt(latestHrv.value,1) : "—";
-        document.getElementById("kpiHrvDelta").textContent = latestHrv ? deltaText(latestHrv.value, prevHrv ? prevHrv.value : null, 1) : "Nincs adat";
-
-        document.getElementById("avgRecovery").textContent = fmt(avg(recovery),1);
-        document.getElementById("avgSleepPerf").textContent = fmt(avg(sleepPerf),1,"%");
-        document.getElementById("avgStrain").textContent = fmt(avg(strain),1);
-        document.getElementById("avgHrv").textContent = fmt(avg(hrv),1);
-        document.getElementById("avgRhr").textContent = fmt(avg(rhr),1);
-        document.getElementById("avgCalories").textContent = fmt(avg(calories),0);
-
-        const latestRow = data[data.length - 1];
-        const latestRows = [
-          ["Dátum", fmtDate(latestRow.date)],
-          ["Recovery", fmt(toNumberOrNull(latestRow.recovery))],
-          ["Sleep performance", fmt(toNumberOrNull(latestRow.sleepPerformance),0,"%")],
-          ["Sleep duration", fmt(toNumberOrNull(latestRow.sleepDuration),2," h")],
-          ["Sleep need", fmt(toNumberOrNull(latestRow.sleepNeed),2," h")],
-          ["Strain", fmt(toNumberOrNull(latestRow.strain),1)],
-          ["HRV", fmt(toNumberOrNull(latestRow.hrv),1)],
-          ["Resting HR", fmt(toNumberOrNull(latestRow.restingHr),0)],
-          ["Calories", fmt(toNumberOrNull(latestRow.calories),0)]
-        ];
-
-        document.getElementById("latestTable").innerHTML = latestRows
-          .map(([k,v]) => `<tr><td>${k}</td><td class="mono">${v}</td></tr>`)
-          .join("");
-
-        const recent = data.slice(-14).reverse();
-        document.getElementById("recentRows").innerHTML = recent.map(d => `
-          <tr>
-            <td>${fmtDate(d.date)}</td>
-            <td class="mono">${fmt(toNumberOrNull(d.recovery))}</td>
-            <td class="mono">${fmt(toNumberOrNull(d.sleepPerformance),0,"%")}</td>
-            <td class="mono">${fmt(toNumberOrNull(d.sleepDuration),2)}</td>
-            <td class="mono">${fmt(toNumberOrNull(d.sleepNeed),2)}</td>
-            <td class="mono">${fmt(toNumberOrNull(d.strain),1)}</td>
-            <td class="mono">${fmt(toNumberOrNull(d.hrv),1)}</td>
-            <td class="mono">${fmt(toNumberOrNull(d.restingHr),0)}</td>
-            <td class="mono">${fmt(toNumberOrNull(d.calories),0)}</td>
-          </tr>
-        `).join("");
-
-        const recoveryValid = recovery.filter(isValidNumber);
-        const green = recoveryValid.filter(v => v >= 67).length;
-        const yellow = recoveryValid.filter(v => v >= 34 && v < 67).length;
-        const red = recoveryValid.filter(v => v < 34).length;
-
-        document.getElementById("zonesTable").innerHTML = `
-          <tr><td>Green (67+)</td><td class="mono">${green}</td></tr>
-          <tr><td>Yellow (34-66)</td><td class="mono">${yellow}</td></tr>
-          <tr><td>Red (0-33)</td><td class="mono">${red}</td></tr>
-        `;
-
-        buildLineChart("chartMain", labels, [
-          { color:"#22c55e", data:recovery },
-          { color:"#60a5fa", data:sleepPerf },
-          { color:"#f59e0b", data:strain }
-        ]);
-
-        buildLineChart("chartHr", labels, [
-          { color:"#a78bfa", data:hrv },
-          { color:"#f472b6", data:rhr }
-        ]);
-
-        buildLineChart("chartSleep", labels, [
-          { color:"#22d3ee", data:sleepDuration },
-          { color:"#60a5fa", data:sleepNeed }
-        ]);
-
-        buildLineChart("chartCalories", labels, [
-          { color:"#ef4444", data:calories }
-        ]);
-
-        statusEl.textContent =
-          "Sikeres betöltés: " + data.length +
-          " nap • utolsó dátum: " + fmtDate(latestRow.date) +
-          " • recovery értékek: " + recoveryValid.length;
-
-      }catch(err){
-        console.error(err);
-        statusEl.textContent = "Hiba a betöltéskor: " + err.message;
-      }
-    }
-
-    load();
-  </script>
+load();
+</script>
 </body>
 </html>
