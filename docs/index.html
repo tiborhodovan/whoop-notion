@@ -417,7 +417,7 @@
         if(!res.ok) throw new Error("HTTP " + res.status);
 
         const raw = await res.json();
-        const data = Array.isArray(raw) ? raw.slice() : [];
+        const data = Array.isArray(raw) ? raw.slice() : (Array.isArray(raw?.daily) ? raw.daily.slice() : []);
         data.sort((a,b)=>new Date(a.date) - new Date(b.date));
 
         if(!data.length){
