@@ -21,6 +21,7 @@
     --violet: #9b8cff;
     --blue: #59a6ff;
     --pink: #ff7bb0;
+    --gold: #f2d675;
     --green-zone: #2de3c6;
     --yellow-zone: #ffb648;
     --red-zone: #ff6b5e;
@@ -70,6 +71,21 @@
   }
   .dot{ width:7px; height:7px; border-radius:50%; background:var(--teal); box-shadow:0 0 8px var(--teal); }
 
+  /* Tabs */
+  .tabs{ display:flex; gap:6px; margin-bottom:18px; border-bottom:1px solid var(--line); flex-wrap:wrap; }
+  .tab-btn{
+    appearance:none; border:none; background:transparent; color:var(--muted);
+    font-family:inherit; font-size:13.5px; font-weight:700; letter-spacing:.01em;
+    padding:11px 16px; cursor:pointer; position:relative; border-radius:10px 10px 0 0;
+    transition: color .15s ease;
+  }
+  .tab-btn:hover{ color:var(--text); background:rgba(255,255,255,.02); }
+  .tab-btn.active{ color:var(--teal); }
+  .tab-btn.active::after{
+    content:''; position:absolute; left:10px; right:10px; bottom:-1px; height:2px;
+    background:var(--teal); border-radius:2px 2px 0 0;
+  }
+
   .controls{
     display:flex; flex-wrap:wrap; gap:12px; align-items:center;
     padding:14px 16px; margin-bottom:22px;
@@ -77,6 +93,7 @@
     border:1px solid var(--line);
     border-radius:16px;
   }
+  .controls.controls-secondary{ padding:10px 16px; margin-top:-10px; }
   .control-group{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
   .control-label{
     font-size:10.5px; text-transform:uppercase; letter-spacing:.1em;
@@ -91,6 +108,9 @@
   .chip:hover{ border-color:var(--line-strong); color:var(--text); background:rgba(255,255,255,.03); }
   .chip.active{ background:var(--teal); border-color:var(--teal); color:#04120f; }
   .chip.active:hover{ color:#04120f; }
+  .chip.zone-green.active{ background:var(--green-zone); border-color:var(--green-zone); }
+  .chip.zone-yellow.active{ background:var(--yellow-zone); border-color:var(--yellow-zone); }
+  .chip.zone-red.active{ background:var(--red-zone); border-color:var(--red-zone); }
   select.chip{ padding-right:10px; }
   .custom-range{ display:none; align-items:center; gap:8px; }
   .custom-range.show{ display:flex; }
@@ -99,8 +119,22 @@
     font-family:inherit; font-size:12px; border-radius:8px; padding:6px 8px;
     color-scheme: dark;
   }
+  .metric-filter{ display:flex; align-items:center; gap:6px; }
+  .metric-filter select{
+    background:var(--panel2); border:1px solid var(--line); color:var(--text);
+    font-family:inherit; font-size:12px; border-radius:8px; padding:6px 8px;
+  }
+  .metric-filter input[type="number"]{
+    width:64px; background:var(--panel2); border:1px solid var(--line); color:var(--text);
+    font-family:inherit; font-size:12px; border-radius:8px; padding:6px 8px;
+  }
   .divider-v{ width:1px; align-self:stretch; background:var(--line); margin:0 4px; }
   .spacer{ flex:1 1 auto; }
+  .clear-link{
+    font-size:11.5px; color:var(--muted2); text-decoration:underline; cursor:pointer;
+    background:none; border:none; font-family:inherit; padding:0;
+  }
+  .clear-link:hover{ color:var(--coral); }
 
   .grid{ display:grid; grid-template-columns:repeat(12,1fr); gap:16px; }
   .card{
@@ -114,9 +148,9 @@
   }
   .span-2{grid-column:span 2} .span-3{grid-column:span 3} .span-4{grid-column:span 4}
   .span-5{grid-column:span 5} .span-6{grid-column:span 6} .span-7{grid-column:span 7}
-  .span-8{grid-column:span 8} .span-12{grid-column:span 12}
+  .span-8{grid-column:span 8} .span-9{grid-column:span 9} .span-12{grid-column:span 12}
   @media (max-width:1100px){
-    .span-2,.span-3,.span-4,.span-5,.span-6,.span-7,.span-8{ grid-column:span 12; }
+    .span-2,.span-3,.span-4,.span-5,.span-6,.span-7,.span-8,.span-9{ grid-column:span 12; }
   }
 
   .card-title{
@@ -146,6 +180,7 @@
 
   .chart-box{ width:100%; height:280px; position:relative; }
   .chart-box.tall{ height:320px; }
+  .chart-box.short{ height:220px; }
   .chart-box svg{ width:100%; height:100%; display:block; overflow:visible; }
   .legend{ display:flex; gap:16px; flex-wrap:wrap; margin-top:12px; }
   .legend span{ display:inline-flex; align-items:center; gap:6px; font-size:12px; color:var(--muted); }
@@ -168,8 +203,45 @@
   .zones-legend div{ text-align:center; }
   .zones-legend .n{ font-size:20px; font-weight:800; display:block; }
 
-  .status-line{ color:var(--muted2); font-size:12px; margin-top:10px; }
+  .status-line{ color:var(--muted2); font-size:12px; margin-top:10px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; }
   .empty-msg{ padding:30px; text-align:center; color:var(--muted2); font-size:13px; }
+
+  .pagination{ display:flex; align-items:center; gap:10px; }
+  .page-btn{
+    appearance:none; border:1px solid var(--line); background:transparent; color:var(--muted);
+    font-family:inherit; font-size:12px; padding:5px 10px; border-radius:8px; cursor:pointer;
+  }
+  .page-btn:hover:not(:disabled){ color:var(--text); border-color:var(--line-strong); }
+  .page-btn:disabled{ opacity:.35; cursor:default; }
+
+  /* Records */
+  .record-card{
+    display:flex; align-items:center; gap:14px; padding:14px 16px;
+    background:rgba(255,255,255,.02); border:1px solid var(--line); border-radius:14px;
+    margin-bottom:10px;
+  }
+  .record-icon{
+    width:38px; height:38px; border-radius:10px; display:flex; align-items:center; justify-content:center;
+    font-size:17px; flex-shrink:0;
+  }
+  .record-main{ flex:1; min-width:0; }
+  .record-title{ font-size:12.5px; color:var(--muted); }
+  .record-value{ font-size:18px; font-weight:800; margin-top:1px; }
+  .record-date{ font-size:11.5px; color:var(--muted2); font-family:'JetBrains Mono',monospace; white-space:nowrap; }
+
+  .streak-row{ display:flex; gap:10px; flex-wrap:wrap; }
+  .streak-chip{
+    flex:1; min-width:140px; padding:12px 14px; border-radius:12px;
+    background:rgba(255,255,255,.02); border:1px solid var(--line);
+  }
+  .streak-chip .n{ font-size:24px; font-weight:800; }
+  .streak-chip .l{ font-size:11px; color:var(--muted); margin-top:2px; }
+  .streak-chip .d{ font-size:10.5px; color:var(--muted2); margin-top:4px; font-family:'JetBrains Mono',monospace; }
+
+  /* Corr scatter */
+  .corr-stat{ display:flex; gap:22px; margin-top:12px; flex-wrap:wrap; }
+  .corr-stat div{ font-size:12px; color:var(--muted); }
+  .corr-stat b{ color:var(--text); font-size:15px; display:block; margin-top:2px; }
 
   footer{ text-align:center; color:var(--muted2); font-size:11.5px; margin-top:36px; }
 
@@ -192,6 +264,14 @@
     <div class="top-status"><span class="dot"></span><span id="statusPill">betöltés…</span></div>
   </header>
 
+  <nav class="tabs" id="tabs">
+    <button class="tab-btn active" data-tab="overview">Áttekintés</button>
+    <button class="tab-btn" data-tab="sleep">Alvás</button>
+    <button class="tab-btn" data-tab="trends">Trendek</button>
+    <button class="tab-btn" data-tab="records">Rekordok</button>
+    <button class="tab-btn" data-tab="workouts">Edzések</button>
+  </nav>
+
   <div class="controls">
     <div class="control-group">
       <span class="control-label">Időszak</span>
@@ -209,19 +289,49 @@
       <input type="date" id="dateTo" />
     </div>
     <div class="divider-v"></div>
-    <div class="control-group">
+    <div class="control-group" id="sportControlGroup">
       <span class="control-label">Edzés</span>
       <select class="chip" id="sportFilter"><option value="all">Minden sport</option></select>
     </div>
     <div class="spacer"></div>
+    <button class="clear-link" id="clearFilters">Szűrők törlése</button>
+  </div>
+
+  <div class="controls controls-secondary">
     <div class="control-group">
-      <span class="control-label">Nézet</span>
-      <button class="chip active" data-view="overview">Áttekintés</button>
-      <button class="chip" data-view="workouts">Edzések</button>
+      <span class="control-label">Nap típus</span>
+      <button class="chip active" data-daytype="all">Mind</button>
+      <button class="chip" data-daytype="weekday">Hétköznap</button>
+      <button class="chip" data-daytype="weekend">Hétvége</button>
+    </div>
+    <div class="divider-v"></div>
+    <div class="control-group">
+      <span class="control-label">Recovery zóna</span>
+      <button class="chip zone-green active" data-zone="green">Zöld</button>
+      <button class="chip zone-yellow active" data-zone="yellow">Sárga</button>
+      <button class="chip zone-red active" data-zone="red">Piros</button>
+    </div>
+    <div class="divider-v"></div>
+    <div class="control-group metric-filter">
+      <span class="control-label">Metrika szűrő</span>
+      <select id="metricSelect">
+        <option value="">— nincs —</option>
+        <option value="hrv">HRV</option>
+        <option value="restingHr">Nyugalmi pulzus</option>
+        <option value="strain">Strain</option>
+        <option value="sleepPerformance">Alvás %</option>
+        <option value="sleepDuration">Alvás óra</option>
+        <option value="spo2">SpO2</option>
+        <option value="respiratoryRate">Légzésszám</option>
+      </select>
+      <input type="number" id="metricMin" placeholder="min" />
+      <span style="color:var(--muted2)">–</span>
+      <input type="number" id="metricMax" placeholder="max" />
     </div>
   </div>
 
-  <section id="viewOverview">
+  <!-- ===================== OVERVIEW ===================== -->
+  <section class="tab-panel" id="tabOverview">
     <div class="grid">
 
       <div class="card span-4">
@@ -317,7 +427,7 @@
       </div>
 
       <div class="card span-12">
-        <div class="card-title">Napi adatok<span class="hint" id="tableHint">kattints a fejlécre a rendezéshez</span></div>
+        <div class="card-title">Napi adatok<span class="hint">kattints a fejlécre a rendezéshez</span></div>
         <div class="table-scroll">
           <table id="dailyTable">
             <thead>
@@ -336,13 +446,157 @@
             <tbody id="dailyRows"></tbody>
           </table>
         </div>
-        <div class="status-line" id="dailyStatus"></div>
+        <div class="status-line">
+          <span id="dailyStatus"></span>
+          <span class="pagination" id="dailyPagination"></span>
+        </div>
       </div>
 
     </div>
   </section>
 
-  <section id="viewWorkouts" style="display:none">
+  <!-- ===================== SLEEP ===================== -->
+  <section class="tab-panel" id="tabSleep" style="display:none">
+    <div class="grid">
+
+      <div class="card span-3">
+        <div class="card-title">Átlag alvás hatékonyság</div>
+        <div class="kpi-value mono" id="sleepEffAvg">—</div>
+        <div class="kpi-delta" id="sleepEffSub">—</div>
+      </div>
+      <div class="card span-3">
+        <div class="card-title">Átlag SpO2</div>
+        <div class="kpi-value mono" id="spo2Avg">—</div>
+        <div class="kpi-delta" id="spo2Sub">—</div>
+      </div>
+      <div class="card span-3">
+        <div class="card-title">Átlag légzésszám</div>
+        <div class="kpi-value mono" id="respAvg">—</div>
+        <div class="kpi-delta" id="respSub">—</div>
+      </div>
+      <div class="card span-3">
+        <div class="card-title">Átlag bőrhőmérséklet</div>
+        <div class="kpi-value mono" id="skinAvg">—</div>
+        <div class="kpi-delta" id="skinSub">—</div>
+      </div>
+
+      <div class="card span-6">
+        <div class="card-title">Alvás hatékonyság trend</div>
+        <div class="chart-box" id="chartSleepEff"></div>
+        <div class="legend"><span><i class="sw" style="background:var(--blue)"></i>Hatékonyság %</span></div>
+      </div>
+      <div class="card span-6">
+        <div class="card-title">SpO2 &amp; Légzésszám</div>
+        <div class="chart-box" id="chartSpo2Resp"></div>
+        <div class="legend">
+          <span><i class="sw" style="background:var(--teal)"></i>SpO2 %</span>
+          <span><i class="sw" style="background:var(--violet)"></i>Légzésszám</span>
+        </div>
+      </div>
+
+      <div class="card span-12">
+        <div class="card-title">Bőrhőmérséklet trend</div>
+        <div class="chart-box short" id="chartSkinTemp"></div>
+        <div class="legend"><span><i class="sw" style="background:var(--coral)"></i>Bőrhőmérséklet (°C)</span></div>
+      </div>
+
+      <div class="card span-12">
+        <div class="card-title">Alvás részletes napló<span class="hint">kattints a fejlécre a rendezéshez</span></div>
+        <div class="table-scroll">
+          <table id="sleepTable">
+            <thead>
+              <tr>
+                <th data-key="date">Dátum</th>
+                <th data-key="sleepPerformance">Alvás %</th>
+                <th data-key="sleepEfficiency">Hatékonyság %</th>
+                <th data-key="sleepDuration">Alvás h</th>
+                <th data-key="sleepNeed">Igény h</th>
+                <th data-key="spo2">SpO2</th>
+                <th data-key="respiratoryRate">Légzésszám</th>
+                <th data-key="skinTemp">Bőrhő °C</th>
+              </tr>
+            </thead>
+            <tbody id="sleepRows"></tbody>
+          </table>
+        </div>
+        <div class="status-line">
+          <span id="sleepStatus"></span>
+          <span class="pagination" id="sleepPagination"></span>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ===================== TRENDS ===================== -->
+  <section class="tab-panel" id="tabTrends" style="display:none">
+    <div class="grid">
+
+      <div class="card span-12">
+        <div class="card-title">
+          Heti / havi átlagok
+          <span class="control-group" style="margin:0">
+            <button class="chip active" data-agg="week">Heti</button>
+            <button class="chip" data-agg="month">Havi</button>
+          </span>
+        </div>
+        <div class="chart-box tall" id="chartAgg"></div>
+        <div class="legend">
+          <span><i class="sw" style="background:var(--teal)"></i>Recovery</span>
+          <span><i class="sw" style="background:var(--blue)"></i>Alvás %</span>
+          <span><i class="sw" style="background:var(--amber)"></i>Strain</span>
+        </div>
+      </div>
+
+      <div class="card span-6">
+        <div class="card-title">Strain &rarr; másnapi Recovery összefüggés</div>
+        <div class="chart-box" id="chartCorr"></div>
+        <div class="corr-stat">
+          <div>Korrelációs együttható<b class="mono" id="corrCoef">—</b></div>
+          <div>Adatpontok száma<b class="mono" id="corrN">—</b></div>
+        </div>
+      </div>
+
+      <div class="card span-6">
+        <div class="card-title">Alvás időtartam &rarr; másnapi Recovery</div>
+        <div class="chart-box" id="chartCorrSleep"></div>
+        <div class="corr-stat">
+          <div>Korrelációs együttható<b class="mono" id="corrCoefSleep">—</b></div>
+          <div>Adatpontok száma<b class="mono" id="corrNSleep">—</b></div>
+        </div>
+      </div>
+
+      <div class="card span-12">
+        <div class="card-title">Hétköznap vs. hétvége átlagok</div>
+        <div id="weekdayCompare"></div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ===================== RECORDS ===================== -->
+  <section class="tab-panel" id="tabRecords" style="display:none">
+    <div class="grid">
+
+      <div class="card span-6">
+        <div class="card-title">Személyes csúcsok (a szűrt időszakban)</div>
+        <div id="recordsList"></div>
+      </div>
+
+      <div class="card span-6">
+        <div class="card-title">Sorozatok</div>
+        <div class="streak-row" id="streaksRow"></div>
+        <div style="margin-top:18px">
+          <div class="card-title" style="margin-bottom:8px">Leghosszabb zöld recovery sorozatok</div>
+          <div id="streakList"></div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ===================== WORKOUTS ===================== -->
+  <section class="tab-panel" id="tabWorkouts" style="display:none">
     <div class="grid">
 
       <div class="card span-3">
@@ -395,7 +649,10 @@
             <tbody id="workoutRows"></tbody>
           </table>
         </div>
-        <div class="status-line" id="workoutStatus"></div>
+        <div class="status-line">
+          <span id="workoutStatus"></span>
+          <span class="pagination" id="workoutPagination"></span>
+        </div>
       </div>
 
     </div>
@@ -405,14 +662,26 @@
 </div>
 
 <script>
+/* ============ STATE ============ */
 const state = {
   daily: [], workouts: [],
   rangeMode: '90', customFrom: null, customTo: null,
-  sport: 'all', view: 'overview',
+  sport: 'all',
+  activeTab: 'overview',
+  dayType: 'all', // all | weekday | weekend
+  zones: { green:true, yellow:true, red:true },
+  metric: { key:'', min:null, max:null },
+  aggMode: 'week', // week | month
   sortDaily: { key: 'date', dir: 'desc' },
+  sortSleep: { key: 'date', dir: 'desc' },
   sortWorkout: { key: 'date', dir: 'desc' },
+  pageDaily: 1,
+  pageSleep: 1,
+  pageWorkout: 1,
+  pageSize: 25,
 };
 
+/* ============ HELPERS ============ */
 function isNum(v){ return typeof v === 'number' && Number.isFinite(v); }
 function toNum(v){ if(v === null || v === undefined || v === '') return null; const n = Number(v); return Number.isFinite(n) ? n : null; }
 function fmt(v, d=0, suffix=''){ return isNum(v) ? v.toFixed(d) + suffix : '—'; }
@@ -421,7 +690,9 @@ function sum(arr){ const v = arr.filter(isNum); return v.length ? v.reduce((a,b)
 function fmtDate(s){ const d = new Date(s); return Number.isNaN(d.getTime()) ? s : d.toLocaleDateString('hu-HU', {year:'numeric', month:'2-digit', day:'2-digit'}); }
 function fmtDateShort(s){ const d = new Date(s); return Number.isNaN(d.getTime()) ? s : d.toLocaleDateString('hu-HU', {month:'short', day:'numeric'}); }
 function recoveryClass(v){ if(!isNum(v)) return ''; if(v>=67) return 'good'; if(v>=34) return 'warn'; return 'bad'; }
+function recoveryZone(v){ if(!isNum(v)) return null; if(v>=67) return 'green'; if(v>=34) return 'yellow'; return 'red'; }
 function minutesToHM(mins){ if(!isNum(mins)) return '—'; const h = Math.floor(mins/60); const m = Math.round(mins%60); return h>0 ? `${h}ó ${m}p` : `${m}p`; }
+function isWeekend(dateStr){ const d = new Date(dateStr).getDay(); return d === 0 || d === 6; }
 
 function lastValid(data, key){
   for(let i=data.length-1;i>=0;i--){ const v = toNum(data[i][key]); if(isNum(v)) return {index:i, value:v}; }
@@ -438,6 +709,38 @@ function deltaHtml(current, previous, digits=0, suffix=''){
   return { text: `${sign}${diff.toFixed(digits)}${suffix} előző naphoz képest`, cls: diff > 0 ? 'up' : (diff < 0 ? 'down' : '') };
 }
 
+function pearson(pairs){
+  // pairs: [[x,y], ...]
+  const n = pairs.length;
+  if(n < 2) return null;
+  const xs = pairs.map(p=>p[0]), ys = pairs.map(p=>p[1]);
+  const mx = xs.reduce((a,b)=>a+b,0)/n, my = ys.reduce((a,b)=>a+b,0)/n;
+  let num=0, dx=0, dy=0;
+  for(let i=0;i<n;i++){
+    const a = xs[i]-mx, b = ys[i]-my;
+    num += a*b; dx += a*a; dy += b*b;
+  }
+  const denom = Math.sqrt(dx*dy);
+  if(denom === 0) return null;
+  return num/denom;
+}
+
+function isoWeekKey(dateStr){
+  const d = new Date(dateStr);
+  const target = new Date(d.valueOf());
+  const dayNr = (d.getDay() + 6) % 7;
+  target.setDate(target.getDate() - dayNr + 3);
+  const firstThursday = new Date(target.getFullYear(),0,4);
+  const diff = target - firstThursday;
+  const week = 1 + Math.round(diff / (7*24*3600*1000));
+  return `${target.getFullYear()}-W${String(week).padStart(2,'0')}`;
+}
+function monthKey(dateStr){
+  const d = new Date(dateStr);
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+}
+
+/* ============ FILTERING ============ */
 function daysAgo(n){ const d = new Date(); d.setHours(0,0,0,0); d.setDate(d.getDate()-n); return d; }
 
 function getDateBounds(){
@@ -450,34 +753,75 @@ function getDateBounds(){
   return { from: daysAgo(n-1), to: new Date(8640000000000000) };
 }
 
+function passesCommonFilters(dateStr, recoveryVal){
+  // day type
+  if(state.dayType === 'weekday' && isWeekend(dateStr)) return false;
+  if(state.dayType === 'weekend' && !isWeekend(dateStr)) return false;
+  // recovery zone (only applies if recoveryVal is present; if null, don't exclude based on zone)
+  const zone = recoveryZone(recoveryVal);
+  if(zone){
+    if(!state.zones[zone]) return false;
+  }
+  return true;
+}
+
+function passesMetricFilter(row){
+  if(!state.metric.key) return true;
+  const v = toNum(row[state.metric.key]);
+  if(!isNum(v)) return false;
+  if(state.metric.min !== null && v < state.metric.min) return false;
+  if(state.metric.max !== null && v > state.metric.max) return false;
+  return true;
+}
+
 function filteredDaily(){
   const bounds = getDateBounds();
-  if(!bounds) return state.daily;
-  return state.daily.filter(d => { const dt = new Date(d.date); return dt >= bounds.from && dt <= bounds.to; });
+  return state.daily.filter(d => {
+    if(bounds){
+      const dt = new Date(d.date);
+      if(dt < bounds.from || dt > bounds.to) return false;
+    }
+    if(!passesCommonFilters(d.date, toNum(d.recovery))) return false;
+    if(!passesMetricFilter(d)) return false;
+    return true;
+  });
 }
 
 function filteredWorkouts(){
   const bounds = getDateBounds();
-  let list = state.workouts;
-  if(bounds) list = list.filter(w => { const dt = new Date(w.date); return dt >= bounds.from && dt <= bounds.to; });
+  let list = state.workouts.filter(w => {
+    if(bounds){
+      const dt = new Date(w.date);
+      if(dt < bounds.from || dt > bounds.to) return false;
+    }
+    if(state.dayType === 'weekday' && isWeekend(w.date)) return false;
+    if(state.dayType === 'weekend' && !isWeekend(w.date)) return false;
+    return true;
+  });
   if(state.sport !== 'all') list = list.filter(w => w.sport === state.sport);
   return list;
 }
 
+/* Requires logic_core loaded first (isNum, toNum, etc available globally when concatenated) */
+
+/* ============ SVG CHART BUILDERS ============ */
 function buildLineChart(containerId, labels, series, opts={}){
   const container = document.getElementById(containerId);
   const width = 1000, height = opts.height || 280;
   const pad = {top:16, right:16, bottom:26, left:38};
   const allValues = [];
   series.forEach(s => s.data.forEach(v => { if(isNum(v)) allValues.push(v); }));
+
   if(!allValues.length){
     container.innerHTML = '<div class="empty-msg">Nincs megjeleníthető adat ebben az időszakban.</div>';
     return;
   }
+
   let min = Math.min(...allValues), max = Math.max(...allValues);
   if(min === max){ min -= 1; max += 1; }
   const padAmt = (max - min) * 0.08;
   min -= padAmt; max += padAmt;
+
   const plotW = width - pad.left - pad.right;
   const plotH = height - pad.top - pad.bottom;
   const n = labels.length;
@@ -495,11 +839,15 @@ function buildLineChart(containerId, labels, series, opts={}){
   for(let i=0;i<n;i+=labelStep){
     svg += `<text x="${x(i)}" y="${height-6}" text-anchor="middle" class="axis-label">${labels[i]}</text>`;
   }
+
   series.forEach(s => {
     let d = ''; let started = false;
     s.data.forEach((v,i) => {
-      if(isNum(v)){ const px=x(i), py=y(v); d += (!started ? `M ${px} ${py} ` : `L ${px} ${py} `); started = true; }
-      else started = false;
+      if(isNum(v)){
+        const px=x(i), py=y(v);
+        d += (!started ? `M ${px} ${py} ` : `L ${px} ${py} `);
+        started = true;
+      } else { started = false; }
     });
     if(s.fill){
       let area = d + ` L ${x(n-1)} ${pad.top+plotH} L ${x(0)} ${pad.top+plotH} Z`;
@@ -507,6 +855,7 @@ function buildLineChart(containerId, labels, series, opts={}){
     }
     svg += `<path d="${d}" fill="none" stroke="${s.color}" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>`;
   });
+
   svg += `</svg>`;
   container.innerHTML = svg;
 }
@@ -532,7 +881,7 @@ function buildSparkline(containerId, data, color){
 function buildBarChart(containerId, labels, values, color){
   const container = document.getElementById(containerId);
   const valid = values.filter(isNum);
-  if(!valid.length){ container.innerHTML = '<div class="empty-msg">Nincs edzés adat ebben az időszakban.</div>'; return; }
+  if(!valid.length){ container.innerHTML = '<div class="empty-msg">Nincs megjeleníthető adat ebben az időszakban.</div>'; return; }
   const width=1000, height=280;
   const pad = {top:16, right:16, bottom:26, left:38};
   let max = Math.max(...valid) * 1.1;
@@ -540,7 +889,7 @@ function buildBarChart(containerId, labels, values, color){
   const plotH = height - pad.top - pad.bottom;
   const n = values.length;
   const bw = Math.max(2, plotW/n * 0.65);
-  function x(i){ return n<=1 ? pad.left + plotW/2 : pad.left + (i/(n-1)) * (plotW - bw); }
+  function x(i){ return n<=1 ? pad.left + plotW/2 : pad.left + (i/(n-1)) * (plotW - bw) ; }
   function y(v){ return pad.top + (1 - v/max) * plotH; }
 
   let svg = `<svg viewBox="0 0 ${width} ${height}" preserveAspectRatio="none">`;
@@ -563,16 +912,241 @@ function buildBarChart(containerId, labels, values, color){
   container.innerHTML = svg;
 }
 
+function buildGroupedBarChart(containerId, labels, series, opts={}){
+  // series: [{color, data:[...]}], grouped bars per label
+  const container = document.getElementById(containerId);
+  const width = 1000, height = opts.height || 320;
+  const pad = {top:16, right:16, bottom:26, left:38};
+  const allValues = [];
+  series.forEach(s => s.data.forEach(v => { if(isNum(v)) allValues.push(v); }));
+  if(!allValues.length){
+    container.innerHTML = '<div class="empty-msg">Nincs megjeleníthető adat.</div>';
+    return;
+  }
+  let min = Math.min(0, ...allValues), max = Math.max(...allValues);
+  if(min === max){ max += 1; }
+  const padAmt = (max-min)*0.08;
+  max += padAmt;
+  const plotW = width - pad.left - pad.right;
+  const plotH = height - pad.top - pad.bottom;
+  const n = labels.length;
+  const groupW = plotW / n;
+  const barW = Math.max(1.5, (groupW * 0.7) / series.length);
+  function y(v){ return pad.top + (1 - (v-min)/(max-min)) * plotH; }
+
+  let svg = `<svg viewBox="0 0 ${width} ${height}" preserveAspectRatio="none">`;
+  for(let i=0;i<4;i++){
+    const gy = pad.top + (plotH/3)*i;
+    const val = max - (i/3)*(max-min);
+    svg += `<line x1="${pad.left}" y1="${gy}" x2="${width-pad.right}" y2="${gy}" class="grid-line"/>`;
+    svg += `<text x="${pad.left-8}" y="${gy+3}" text-anchor="end" class="axis-label">${val.toFixed(0)}</text>`;
+  }
+  const labelStep = Math.max(1, Math.floor(n/8));
+  for(let i=0;i<n;i+=labelStep){
+    const gx = pad.left + groupW*i + groupW/2;
+    svg += `<text x="${gx}" y="${height-6}" text-anchor="middle" class="axis-label">${labels[i]}</text>`;
+  }
+  for(let i=0;i<n;i++){
+    const groupStart = pad.left + groupW*i + (groupW - barW*series.length)/2;
+    series.forEach((s, si) => {
+      const v = s.data[i];
+      if(!isNum(v)) return;
+      const bx = groupStart + si*barW;
+      const by = y(v);
+      const baseline = y(0);
+      const barTop = Math.min(by, baseline);
+      const barH = Math.abs(baseline - by);
+      svg += `<rect x="${bx}" y="${barTop}" width="${barW*0.9}" height="${barH}" fill="${s.color}" opacity="0.9" rx="1.5"/>`;
+    });
+  }
+  svg += `</svg>`;
+  container.innerHTML = svg;
+}
+
+function buildScatterChart(containerId, points, opts={}){
+  // points: [{x,y}]
+  const container = document.getElementById(containerId);
+  const width = 1000, height = opts.height || 280;
+  const pad = {top:16, right:16, bottom:30, left:40};
+  const valid = points.filter(p => isNum(p.x) && isNum(p.y));
+  if(!valid.length){
+    container.innerHTML = '<div class="empty-msg">Nincs elég adatpont az összefüggéshez.</div>';
+    return;
+  }
+  const xs = valid.map(p=>p.x), ys = valid.map(p=>p.y);
+  let xmin = Math.min(...xs), xmax = Math.max(...xs);
+  let ymin = Math.min(...ys), ymax = Math.max(...ys);
+  if(xmin===xmax){xmin-=1;xmax+=1;}
+  if(ymin===ymax){ymin-=1;ymax+=1;}
+  const xpad = (xmax-xmin)*0.08, ypad = (ymax-ymin)*0.08;
+  xmin-=xpad; xmax+=xpad; ymin-=ypad; ymax+=ypad;
+  const plotW = width - pad.left - pad.right;
+  const plotH = height - pad.top - pad.bottom;
+  function px(v){ return pad.left + (v-xmin)/(xmax-xmin) * plotW; }
+  function py(v){ return pad.top + (1-(v-ymin)/(ymax-ymin)) * plotH; }
+
+  let svg = `<svg viewBox="0 0 ${width} ${height}" preserveAspectRatio="none">`;
+  for(let i=0;i<4;i++){
+    const gy = pad.top + (plotH/3)*i;
+    svg += `<line x1="${pad.left}" y1="${gy}" x2="${width-pad.right}" y2="${gy}" class="grid-line"/>`;
+  }
+  valid.forEach(p => {
+    svg += `<circle cx="${px(p.x)}" cy="${py(p.y)}" r="4" fill="${opts.color||'#2de3c6'}" opacity="0.55"/>`;
+  });
+  // simple linear regression line
+  const n = valid.length;
+  const mx = xs.reduce((a,b)=>a+b,0)/n, my = ys.reduce((a,b)=>a+b,0)/n;
+  let num=0, den=0;
+  valid.forEach(p => { num += (p.x-mx)*(p.y-my); den += (p.x-mx)*(p.x-mx); });
+  if(den !== 0){
+    const slope = num/den;
+    const intercept = my - slope*mx;
+    const y1 = slope*xmin + intercept;
+    const y2 = slope*xmax + intercept;
+    svg += `<line x1="${px(xmin)}" y1="${py(y1)}" x2="${px(xmax)}" y2="${py(y2)}" stroke="${opts.lineColor||'#ffb648'}" stroke-width="2" stroke-dasharray="5 4"/>`;
+  }
+  svg += `<text x="${pad.left-8}" y="${height-pad.bottom+16}" text-anchor="start" class="axis-label">${xmin.toFixed(1)}</text>`;
+  svg += `<text x="${width-pad.right}" y="${height-pad.bottom+16}" text-anchor="end" class="axis-label">${xmax.toFixed(1)}</text>`;
+  svg += `</svg>`;
+  container.innerHTML = svg;
+}
+
+/* ============ RECORDS & STREAKS ============ */
+function computeRecords(data){
+  const specs = [
+    { key:'recovery', label:'Legmagasabb Recovery', mode:'max', digits:0, unit:'', icon:'🟢', color:'var(--green-zone)' },
+    { key:'recovery', label:'Legalacsonyabb Recovery', mode:'min', digits:0, unit:'', icon:'🔴', color:'var(--red-zone)' },
+    { key:'hrv', label:'Legmagasabb HRV', mode:'max', digits:1, unit:' ms', icon:'💜', color:'var(--violet)' },
+    { key:'restingHr', label:'Legalacsonyabb nyugalmi pulzus', mode:'min', digits:0, unit:' bpm', icon:'💙', color:'var(--blue)' },
+    { key:'strain', label:'Legmagasabb Strain', mode:'max', digits:1, unit:'', icon:'🔥', color:'var(--amber)' },
+    { key:'sleepDuration', label:'Leghosszabb alvás', mode:'max', digits:1, unit:' h', icon:'😴', color:'var(--blue)' },
+    { key:'sleepPerformance', label:'Legjobb alvás %', mode:'max', digits:0, unit:'%', icon:'✨', color:'var(--teal)' },
+    { key:'calories', label:'Legtöbb kalória / nap', mode:'max', digits:0, unit:'', icon:'⚡', color:'var(--coral)' },
+  ];
+  return specs.map(spec => {
+    let best = null;
+    data.forEach(row => {
+      const v = toNum(row[spec.key]);
+      if(!isNum(v)) return;
+      if(best === null) { best = { value:v, date:row.date }; return; }
+      if(spec.mode === 'max' && v > best.value) best = { value:v, date:row.date };
+      if(spec.mode === 'min' && v < best.value) best = { value:v, date:row.date };
+    });
+    return { ...spec, result: best };
+  });
+}
+
+function computeStreaks(data){
+  // data sorted ascending by date
+  const zones = ['green','yellow','red'];
+  const streaks = { green: [], yellow: [], red: [] };
+  let current = null;
+  data.forEach(row => {
+    const zone = recoveryZone(toNum(row.recovery));
+    if(zone && zones.includes(zone)){
+      if(current && current.zone === zone){
+        current.end = row.date;
+        current.length++;
+      } else {
+        if(current) streaks[current.zone].push(current);
+        current = { zone, start: row.date, end: row.date, length: 1 };
+      }
+    } else {
+      if(current) streaks[current.zone].push(current);
+      current = null;
+    }
+  });
+  if(current) streaks[current.zone].push(current);
+  const summary = {};
+  zones.forEach(z => {
+    const arr = streaks[z];
+    summary[z] = arr.length ? arr.reduce((a,b) => b.length > a.length ? b : a) : null;
+    summary[z + 'All'] = arr.slice().sort((a,b) => b.length - a.length);
+  });
+  return summary;
+}
+
+/* ============ AGGREGATION (weekly/monthly) ============ */
+function aggregateByPeriod(data, mode){
+  const keyFn = mode === 'week' ? isoWeekKey : monthKey;
+  const groups = {};
+  data.forEach(row => {
+    const k = keyFn(row.date);
+    if(!groups[k]) groups[k] = [];
+    groups[k].push(row);
+  });
+  const keys = Object.keys(groups).sort();
+  return keys.map(k => {
+    const rows = groups[k];
+    return {
+      key: k,
+      recovery: avg(rows.map(r => toNum(r.recovery))),
+      sleepPerformance: avg(rows.map(r => toNum(r.sleepPerformance))),
+      strain: avg(rows.map(r => toNum(r.strain))),
+      hrv: avg(rows.map(r => toNum(r.hrv))),
+      restingHr: avg(rows.map(r => toNum(r.restingHr))),
+      count: rows.length,
+    };
+  });
+}
+
+/* ============ CORRELATION PAIR BUILDER ============ */
+function buildNextDayPairs(data, xKey){
+  // data must be sorted ascending by date, no gap assumption but we check consecutive calendar days
+  const pairs = [];
+  for(let i=0;i<data.length-1;i++){
+    const cur = data[i], next = data[i+1];
+    const curDate = new Date(cur.date), nextDate = new Date(next.date);
+    const diffDays = Math.round((nextDate - curDate) / 86400000);
+    if(diffDays !== 1) continue; // only consecutive days
+    const x = toNum(cur[xKey]);
+    const y = toNum(next.recovery);
+    if(isNum(x) && isNum(y)) pairs.push({x, y});
+  }
+  return pairs;
+}
+
+/* ============ PAGINATION HELPER ============ */
+function paginate(list, page, pageSize){
+  const totalPages = Math.max(1, Math.ceil(list.length / pageSize));
+  const clampedPage = Math.min(Math.max(1, page), totalPages);
+  const start = (clampedPage - 1) * pageSize;
+  return { rows: list.slice(start, start + pageSize), totalPages, page: clampedPage, total: list.length };
+}
+
+function renderPaginationControls(containerId, page, totalPages, onChange){
+  const el = document.getElementById(containerId);
+  if(totalPages <= 1){ el.innerHTML = ''; return; }
+  el.innerHTML = `
+    <button class="page-btn" data-act="first" ${page<=1?'disabled':''}>«</button>
+    <button class="page-btn" data-act="prev" ${page<=1?'disabled':''}>‹</button>
+    <span class="mono" style="font-size:12px;color:var(--muted)">${page} / ${totalPages}</span>
+    <button class="page-btn" data-act="next" ${page>=totalPages?'disabled':''}>›</button>
+    <button class="page-btn" data-act="last" ${page>=totalPages?'disabled':''}>»</button>
+  `;
+  el.querySelectorAll('.page-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const act = btn.dataset.act;
+      let newPage = page;
+      if(act==='first') newPage = 1;
+      if(act==='prev') newPage = page - 1;
+      if(act==='next') newPage = page + 1;
+      if(act==='last') newPage = totalPages;
+      onChange(newPage);
+    });
+  });
+}
+
+/* ============ RENDER: OVERVIEW ============ */
 function renderOverview(){
   const data = filteredDaily().slice().sort((a,b)=> new Date(a.date)-new Date(b.date));
   const statusEl = document.getElementById('dailyStatus');
 
   if(!data.length){
-    document.getElementById('chartMain').innerHTML = '<div class="empty-msg">Nincs adat ebben az időszakban.</div>';
-    document.getElementById('chartHr').innerHTML = '<div class="empty-msg">Nincs adat.</div>';
-    document.getElementById('chartSleep').innerHTML = '<div class="empty-msg">Nincs adat.</div>';
+    ['chartMain','chartHr','chartSleep'].forEach(id => document.getElementById(id).innerHTML = '<div class="empty-msg">Nincs adat ebben az időszakban.</div>');
     document.getElementById('dailyRows').innerHTML = '';
-    statusEl.textContent = 'Nincs megjeleníthető nap ebben az időszakban.';
+    document.getElementById('dailyPagination').innerHTML = '';
+    statusEl.textContent = 'Nincs megjeleníthető nap a szűrt tartományban.';
     ['kpiStrain','kpiSleepH','kpiCalories','kpiDayCount','ringValue','ringHrv','ringRhr','ringSleep','ringSpo2','avgRecovery','avgHrv','avgRhr'].forEach(id=>{
       const el = document.getElementById(id); if(el) el.textContent = '—';
     });
@@ -680,7 +1254,8 @@ function renderDailyTable(data){
     if(av===null) av = -Infinity; if(bv===null) bv = -Infinity;
     return state.sortDaily.dir==='asc' ? av-bv : bv-av;
   });
-  const rows = sorted.slice(0, 60);
+  const { rows, totalPages, page } = paginate(sorted, state.pageDaily, state.pageSize);
+  state.pageDaily = page;
   document.getElementById('dailyRows').innerHTML = rows.map(d => `
     <tr>
       <td class="mono">${fmtDate(d.date)}</td>
@@ -698,9 +1273,191 @@ function renderDailyTable(data){
     th.classList.toggle('sorted', th.dataset.key === state.sortDaily.key);
     th.classList.toggle('asc', th.dataset.key === state.sortDaily.key && state.sortDaily.dir === 'asc');
   });
-  document.getElementById('tableHint').textContent = sorted.length > 60 ? `első 60 / ${sorted.length} nap` : 'kattints a fejlécre a rendezéshez';
+  renderPaginationControls('dailyPagination', page, totalPages, (p) => { state.pageDaily = p; renderDailyTable(data); });
 }
 
+/* ============ RENDER: SLEEP ============ */
+function renderSleep(){
+  const data = filteredDaily().slice().sort((a,b)=> new Date(a.date)-new Date(b.date));
+  const statusEl = document.getElementById('sleepStatus');
+
+  if(!data.length){
+    ['chartSleepEff','chartSpo2Resp','chartSkinTemp'].forEach(id => document.getElementById(id).innerHTML = '<div class="empty-msg">Nincs adat ebben az időszakban.</div>');
+    document.getElementById('sleepRows').innerHTML = '';
+    document.getElementById('sleepPagination').innerHTML = '';
+    statusEl.textContent = 'Nincs megjeleníthető nap.';
+    ['sleepEffAvg','spo2Avg','respAvg','skinAvg'].forEach(id => document.getElementById(id).textContent = '—');
+    return;
+  }
+
+  const labels = data.map(d => fmtDateShort(d.date));
+  const eff = data.map(d => toNum(d.sleepEfficiency));
+  const spo2 = data.map(d => toNum(d.spo2));
+  const resp = data.map(d => toNum(d.respiratoryRate));
+  const skin = data.map(d => toNum(d.skinTemp));
+
+  document.getElementById('sleepEffAvg').textContent = fmt(avg(eff),0,'%');
+  document.getElementById('spo2Avg').textContent = fmt(avg(spo2),1,'%');
+  document.getElementById('respAvg').textContent = fmt(avg(resp),1,'/perc');
+  document.getElementById('skinAvg').textContent = fmt(avg(skin),1,'°C');
+
+  const latestEff = lastValid(data,'sleepEfficiency');
+  const latestSpo2 = lastValid(data,'spo2');
+  const latestResp = lastValid(data,'respiratoryRate');
+  const latestSkin = lastValid(data,'skinTemp');
+  document.getElementById('sleepEffSub').textContent = latestEff ? `legutóbbi: ${fmt(latestEff.value,0,'%')}` : '—';
+  document.getElementById('spo2Sub').textContent = latestSpo2 ? `legutóbbi: ${fmt(latestSpo2.value,1,'%')}` : '—';
+  document.getElementById('respSub').textContent = latestResp ? `legutóbbi: ${fmt(latestResp.value,1)}` : '—';
+  document.getElementById('skinSub').textContent = latestSkin ? `legutóbbi: ${fmt(latestSkin.value,1,'°C')}` : '—';
+
+  buildLineChart('chartSleepEff', labels, [{color:'#59a6ff', data:eff, fill:true}]);
+  buildLineChart('chartSpo2Resp', labels, [
+    {color:'#2de3c6', data:spo2},
+    {color:'#9b8cff', data:resp},
+  ]);
+  buildLineChart('chartSkinTemp', labels, [{color:'#ff6b5e', data:skin, fill:true}], {height:220});
+
+  renderSleepTable(data);
+  statusEl.textContent = `${data.length} nap megjelenítve · ${fmtDate(data[0].date)} – ${fmtDate(data[data.length-1].date)}`;
+}
+
+function renderSleepTable(data){
+  const sorted = data.slice().sort((a,b) => {
+    const k = state.sortSleep.key;
+    let av = k==='date' ? new Date(a[k]) : toNum(a[k]);
+    let bv = k==='date' ? new Date(b[k]) : toNum(b[k]);
+    if(av===null) av = -Infinity; if(bv===null) bv = -Infinity;
+    return state.sortSleep.dir==='asc' ? av-bv : bv-av;
+  });
+  const { rows, totalPages, page } = paginate(sorted, state.pageSleep, state.pageSize);
+  state.pageSleep = page;
+  document.getElementById('sleepRows').innerHTML = rows.map(d => `
+    <tr>
+      <td class="mono">${fmtDate(d.date)}</td>
+      <td class="mono">${fmt(toNum(d.sleepPerformance),0,'%')}</td>
+      <td class="mono">${fmt(toNum(d.sleepEfficiency),0,'%')}</td>
+      <td class="mono">${fmt(toNum(d.sleepDuration),2)}</td>
+      <td class="mono">${fmt(toNum(d.sleepNeed),2)}</td>
+      <td class="mono">${fmt(toNum(d.spo2),1)}</td>
+      <td class="mono">${fmt(toNum(d.respiratoryRate),1)}</td>
+      <td class="mono">${fmt(toNum(d.skinTemp),1)}</td>
+    </tr>
+  `).join('');
+  document.querySelectorAll('#sleepTable th').forEach(th => {
+    th.classList.toggle('sorted', th.dataset.key === state.sortSleep.key);
+    th.classList.toggle('asc', th.dataset.key === state.sortSleep.key && state.sortSleep.dir === 'asc');
+  });
+  renderPaginationControls('sleepPagination', page, totalPages, (p) => { state.pageSleep = p; renderSleepTable(data); });
+}
+
+/* ============ RENDER: TRENDS ============ */
+function renderTrends(){
+  const data = filteredDaily().slice().sort((a,b)=> new Date(a.date)-new Date(b.date));
+
+  const agg = aggregateByPeriod(data, state.aggMode);
+  const aggLabels = agg.map(a => state.aggMode === 'week' ? a.key.slice(5) : a.key);
+  buildGroupedBarChart('chartAgg', aggLabels, [
+    {color:'#2de3c6', data: agg.map(a=>a.recovery)},
+    {color:'#59a6ff', data: agg.map(a=>a.sleepPerformance)},
+    {color:'#ffb648', data: agg.map(a=>a.strain)},
+  ], {height:320});
+
+  const strainPairs = buildNextDayPairs(data, 'strain');
+  buildScatterChart('chartCorr', strainPairs, {color:'#ffb648', lineColor:'#2de3c6'});
+  const coefStrain = pearson(strainPairs.map(p=>[p.x,p.y]));
+  document.getElementById('corrCoef').textContent = coefStrain !== null ? coefStrain.toFixed(2) : '—';
+  document.getElementById('corrN').textContent = strainPairs.length;
+
+  const sleepPairs = buildNextDayPairs(data, 'sleepDuration');
+  buildScatterChart('chartCorrSleep', sleepPairs, {color:'#59a6ff', lineColor:'#ff7bb0'});
+  const coefSleep = pearson(sleepPairs.map(p=>[p.x,p.y]));
+  document.getElementById('corrCoefSleep').textContent = coefSleep !== null ? coefSleep.toFixed(2) : '—';
+  document.getElementById('corrNSleep').textContent = sleepPairs.length;
+
+  const weekdayRows = data.filter(d => !isWeekend(d.date));
+  const weekendRows = data.filter(d => isWeekend(d.date));
+  const metrics = [
+    { key:'recovery', label:'Recovery', digits:0, unit:'' },
+    { key:'sleepPerformance', label:'Alvás %', digits:0, unit:'%' },
+    { key:'sleepDuration', label:'Alvás óra', digits:1, unit:'h' },
+    { key:'strain', label:'Strain', digits:1, unit:'' },
+    { key:'hrv', label:'HRV', digits:1, unit:' ms' },
+    { key:'restingHr', label:'Nyugalmi pulzus', digits:1, unit:' bpm' },
+  ];
+  document.getElementById('weekdayCompare').innerHTML = `
+    <div class="table-scroll"><table>
+      <thead><tr><th>Metrika</th><th>Hétköznap</th><th>Hétvége</th><th>Különbség</th></tr></thead>
+      <tbody>
+        ${metrics.map(m => {
+          const wd = avg(weekdayRows.map(r => toNum(r[m.key])));
+          const we = avg(weekendRows.map(r => toNum(r[m.key])));
+          const diff = (isNum(wd) && isNum(we)) ? we - wd : null;
+          const diffStr = isNum(diff) ? (diff>0?'+':'') + diff.toFixed(m.digits) + m.unit : '—';
+          const diffCls = isNum(diff) ? (diff>0?'up':diff<0?'down':'') : '';
+          return `<tr>
+            <td>${m.label}</td>
+            <td class="mono">${fmt(wd,m.digits,m.unit)}</td>
+            <td class="mono">${fmt(we,m.digits,m.unit)}</td>
+            <td class="mono kpi-delta ${diffCls}">${diffStr}</td>
+          </tr>`;
+        }).join('')}
+      </tbody>
+    </table></div>
+  `;
+}
+
+/* ============ RENDER: RECORDS ============ */
+function renderRecords(){
+  const data = filteredDaily().slice().sort((a,b)=> new Date(a.date)-new Date(b.date));
+
+  if(!data.length){
+    document.getElementById('recordsList').innerHTML = '<div class="empty-msg">Nincs adat.</div>';
+    document.getElementById('streaksRow').innerHTML = '';
+    document.getElementById('streakList').innerHTML = '<div class="empty-msg">Nincs adat.</div>';
+    return;
+  }
+
+  const records = computeRecords(data);
+  document.getElementById('recordsList').innerHTML = records.map(r => `
+    <div class="record-card">
+      <div class="record-icon" style="background:rgba(255,255,255,.04)">${r.icon}</div>
+      <div class="record-main">
+        <div class="record-title">${r.label}</div>
+        <div class="record-value" style="color:${r.color}">${r.result ? fmt(r.result.value, r.digits, r.unit) : '—'}</div>
+      </div>
+      <div class="record-date">${r.result ? fmtDate(r.result.date) : ''}</div>
+    </div>
+  `).join('');
+
+  const streaks = computeStreaks(data);
+  document.getElementById('streaksRow').innerHTML = `
+    <div class="streak-chip">
+      <div class="n good">${streaks.green ? streaks.green.length : 0}</div>
+      <div class="l">Leghosszabb zöld sorozat</div>
+      <div class="d">${streaks.green ? fmtDate(streaks.green.start)+' – '+fmtDate(streaks.green.end) : '—'}</div>
+    </div>
+    <div class="streak-chip">
+      <div class="n warn">${streaks.yellow ? streaks.yellow.length : 0}</div>
+      <div class="l">Leghosszabb sárga sorozat</div>
+      <div class="d">${streaks.yellow ? fmtDate(streaks.yellow.start)+' – '+fmtDate(streaks.yellow.end) : '—'}</div>
+    </div>
+    <div class="streak-chip">
+      <div class="n bad">${streaks.red ? streaks.red.length : 0}</div>
+      <div class="l">Leghosszabb piros sorozat</div>
+      <div class="d">${streaks.red ? fmtDate(streaks.red.start)+' – '+fmtDate(streaks.red.end) : '—'}</div>
+    </div>
+  `;
+
+  const topGreen = streaks.greenAll.slice(0, 8);
+  document.getElementById('streakList').innerHTML = topGreen.length ? topGreen.map((s,i) => `
+    <div style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid var(--line); font-size:12.5px;">
+      <span><span class="mono" style="color:var(--muted2)">#${i+1}</span> &middot; ${s.length} nap</span>
+      <span class="mono" style="color:var(--muted)">${fmtDate(s.start)} – ${fmtDate(s.end)}</span>
+    </div>
+  `).join('') : '<div class="empty-msg">Nincs zöld recovery sorozat ebben az időszakban.</div>';
+}
+
+/* ============ RENDER: WORKOUTS ============ */
 function renderWorkouts(){
   const data = filteredWorkouts().slice().sort((a,b)=> new Date(a.date)-new Date(b.date));
   const statusEl = document.getElementById('workoutStatus');
@@ -709,6 +1466,7 @@ function renderWorkouts(){
     document.getElementById('chartWorkoutStrain').innerHTML = '<div class="empty-msg">Nincs edzés ebben az időszakban / sportágban.</div>';
     document.getElementById('sportBreakdown').innerHTML = '<div class="empty-msg">Nincs adat.</div>';
     document.getElementById('workoutRows').innerHTML = '';
+    document.getElementById('workoutPagination').innerHTML = '';
     statusEl.textContent = 'Nincs edzés a szűrt tartományban.';
     ['wkCount','wkStrainTotal','wkDuration','wkCalories'].forEach(id => document.getElementById(id).textContent='—');
     return;
@@ -768,7 +1526,8 @@ function renderWorkoutTable(data){
     if(av===null) av=-Infinity; if(bv===null) bv=-Infinity;
     return state.sortWorkout.dir==='asc' ? av-bv : bv-av;
   });
-  const rows = sorted.slice(0, 60);
+  const { rows, totalPages, page } = paginate(sorted, state.pageWorkout, state.pageSize);
+  state.pageWorkout = page;
   document.getElementById('workoutRows').innerHTML = rows.map(w => `
     <tr>
       <td class="mono">${fmtDate(w.date)}</td>
@@ -784,11 +1543,17 @@ function renderWorkoutTable(data){
     th.classList.toggle('sorted', th.dataset.key === state.sortWorkout.key);
     th.classList.toggle('asc', th.dataset.key === state.sortWorkout.key && state.sortWorkout.dir === 'asc');
   });
+  renderPaginationControls('workoutPagination', page, totalPages, (p) => { state.pageWorkout = p; renderWorkoutTable(data); });
 }
 
-function renderAll(){
-  if(state.view === 'overview') renderOverview();
-  else renderWorkouts();
+/* ============ MASTER RENDER ============ */
+function renderActiveTab(){
+  document.getElementById('sportControlGroup').style.display = state.activeTab === 'workouts' ? '' : 'none';
+  if(state.activeTab === 'overview') renderOverview();
+  else if(state.activeTab === 'sleep') renderSleep();
+  else if(state.activeTab === 'trends') renderTrends();
+  else if(state.activeTab === 'records') renderRecords();
+  else if(state.activeTab === 'workouts') renderWorkouts();
 
   const bounds = getDateBounds();
   document.getElementById('rangeLabelSub').textContent = bounds
@@ -796,39 +1561,127 @@ function renderAll(){
     : 'teljes időszak';
 }
 
+/* ============ TAB SWITCHING ============ */
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    state.activeTab = btn.dataset.tab;
+    document.getElementById('tabOverview').style.display = state.activeTab === 'overview' ? '' : 'none';
+    document.getElementById('tabSleep').style.display = state.activeTab === 'sleep' ? '' : 'none';
+    document.getElementById('tabTrends').style.display = state.activeTab === 'trends' ? '' : 'none';
+    document.getElementById('tabRecords').style.display = state.activeTab === 'records' ? '' : 'none';
+    document.getElementById('tabWorkouts').style.display = state.activeTab === 'workouts' ? '' : 'none';
+    renderActiveTab();
+  });
+});
+
+/* ============ DATE RANGE ============ */
 document.querySelectorAll('.chip[data-range]').forEach(btn => {
   btn.addEventListener('click', () => {
     document.querySelectorAll('.chip[data-range]').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
     state.rangeMode = btn.dataset.range;
     document.getElementById('customRange').classList.toggle('show', state.rangeMode === 'custom');
-    if(state.rangeMode === 'custom' && state.customFrom && state.customTo) renderAll();
-    else if(state.rangeMode !== 'custom') renderAll();
+    state.pageDaily = 1; state.pageSleep = 1; state.pageWorkout = 1;
+    if(state.rangeMode === 'custom' && state.customFrom && state.customTo) renderActiveTab();
+    else if(state.rangeMode !== 'custom') renderActiveTab();
   });
 });
+document.getElementById('dateFrom').addEventListener('change', e => { state.customFrom = e.target.value; if(state.customFrom && state.customTo) renderActiveTab(); });
+document.getElementById('dateTo').addEventListener('change', e => { state.customTo = e.target.value; if(state.customFrom && state.customTo) renderActiveTab(); });
 
-document.getElementById('dateFrom').addEventListener('change', e => { state.customFrom = e.target.value; if(state.customFrom && state.customTo) renderAll(); });
-document.getElementById('dateTo').addEventListener('change', e => { state.customTo = e.target.value; if(state.customFrom && state.customTo) renderAll(); });
+/* ============ SPORT FILTER ============ */
+document.getElementById('sportFilter').addEventListener('change', e => {
+  state.sport = e.target.value;
+  state.pageWorkout = 1;
+  renderActiveTab();
+});
 
-document.getElementById('sportFilter').addEventListener('change', e => { state.sport = e.target.value; renderAll(); });
-
-document.querySelectorAll('.chip[data-view]').forEach(btn => {
+/* ============ DAY TYPE ============ */
+document.querySelectorAll('.chip[data-daytype]').forEach(btn => {
   btn.addEventListener('click', () => {
-    document.querySelectorAll('.chip[data-view]').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.chip[data-daytype]').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
-    state.view = btn.dataset.view;
-    document.getElementById('viewOverview').style.display = state.view === 'overview' ? '' : 'none';
-    document.getElementById('viewWorkouts').style.display = state.view === 'workouts' ? '' : 'none';
-    renderAll();
+    state.dayType = btn.dataset.daytype;
+    state.pageDaily = 1; state.pageSleep = 1; state.pageWorkout = 1;
+    renderActiveTab();
   });
 });
 
+/* ============ RECOVERY ZONE TOGGLES (multi-select, at least one stays meaningful) ============ */
+document.querySelectorAll('.chip[data-zone]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const zone = btn.dataset.zone;
+    state.zones[zone] = !state.zones[zone];
+    btn.classList.toggle('active', state.zones[zone]);
+    state.pageDaily = 1;
+    renderActiveTab();
+  });
+});
+
+/* ============ METRIC FILTER ============ */
+document.getElementById('metricSelect').addEventListener('change', e => {
+  state.metric.key = e.target.value;
+  state.pageDaily = 1; state.pageSleep = 1;
+  renderActiveTab();
+});
+document.getElementById('metricMin').addEventListener('input', e => {
+  const v = e.target.value;
+  state.metric.min = v === '' ? null : Number(v);
+  state.pageDaily = 1; state.pageSleep = 1;
+  renderActiveTab();
+});
+document.getElementById('metricMax').addEventListener('input', e => {
+  const v = e.target.value;
+  state.metric.max = v === '' ? null : Number(v);
+  state.pageDaily = 1; state.pageSleep = 1;
+  renderActiveTab();
+});
+
+/* ============ CLEAR FILTERS ============ */
+document.getElementById('clearFilters').addEventListener('click', () => {
+  state.dayType = 'all';
+  state.zones = { green:true, yellow:true, red:true };
+  state.metric = { key:'', min:null, max:null };
+  state.sport = 'all';
+  document.querySelectorAll('.chip[data-daytype]').forEach(b => b.classList.toggle('active', b.dataset.daytype==='all'));
+  document.querySelectorAll('.chip[data-zone]').forEach(b => b.classList.add('active'));
+  document.getElementById('metricSelect').value = '';
+  document.getElementById('metricMin').value = '';
+  document.getElementById('metricMax').value = '';
+  document.getElementById('sportFilter').value = 'all';
+  state.pageDaily = 1; state.pageSleep = 1; state.pageWorkout = 1;
+  renderActiveTab();
+});
+
+/* ============ AGGREGATION MODE (Trends tab) ============ */
+document.querySelectorAll('.chip[data-agg]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.chip[data-agg]').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    state.aggMode = btn.dataset.agg;
+    renderTrends();
+  });
+});
+
+/* ============ TABLE SORTING ============ */
 document.querySelectorAll('#dailyTable th').forEach(th => {
   th.addEventListener('click', () => {
     const key = th.dataset.key;
     if(state.sortDaily.key === key) state.sortDaily.dir = state.sortDaily.dir === 'asc' ? 'desc' : 'asc';
     else { state.sortDaily.key = key; state.sortDaily.dir = 'desc'; }
+    state.pageDaily = 1;
     renderOverview();
+  });
+});
+document.querySelectorAll('#sleepTable th').forEach(th => {
+  th.addEventListener('click', () => {
+    const key = th.dataset.key;
+    if(state.sortSleep.key === key) state.sortSleep.dir = state.sortSleep.dir === 'asc' ? 'desc' : 'asc';
+    else { state.sortSleep.key = key; state.sortSleep.dir = 'desc'; }
+    state.pageSleep = 1;
+    renderSleep();
   });
 });
 document.querySelectorAll('#workoutTable th').forEach(th => {
@@ -836,10 +1689,12 @@ document.querySelectorAll('#workoutTable th').forEach(th => {
     const key = th.dataset.key;
     if(state.sortWorkout.key === key) state.sortWorkout.dir = state.sortWorkout.dir === 'asc' ? 'desc' : 'asc';
     else { state.sortWorkout.key = key; state.sortWorkout.dir = 'desc'; }
+    state.pageWorkout = 1;
     renderWorkouts();
   });
 });
 
+/* ============ LOAD ============ */
 async function load(){
   const pill = document.getElementById('statusPill');
   try{
@@ -873,7 +1728,7 @@ async function load(){
     document.getElementById('dateTo').max = maxDate;
 
     pill.textContent = `${state.daily.length} nap · ${state.workouts.length} edzés betöltve`;
-    renderAll();
+    renderActiveTab();
   }catch(err){
     console.error(err);
     pill.textContent = 'Hiba a betöltéskor: ' + err.message;
